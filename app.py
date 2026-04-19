@@ -112,7 +112,7 @@ st.markdown("""
         transform: scale(1.01); /* تكبير خفيف جداً للمربع */
     }
 
-    /* التعديل هنا: إصلاح القائمة المنسدلة بالكامل لتظهر الحروف الغامقة */
+    /* إصلاح القائمة المنسدلة بالكامل لتظهر الحروف الغامقة */
     ul[data-baseweb="menu"], div[data-baseweb="popover"] {
         background-color: #F8FAFC !important;
         border-radius: 10px !important;
@@ -164,7 +164,8 @@ st.markdown("""
         letter-spacing: 0.3px;
     }
 
-    /* 6. تصميم زر التحليل (زر بينبض لفت الانتباه) */
+    /* 6. التعديل الجذري هنا: استهداف أزرار (Form Submit) بشكل مباشر جداً */
+    div[data-testid="stFormSubmitButton"] > button,
     [data-testid="baseButton-secondary"] {
         background: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%) !important;
         border: none !important;
@@ -173,13 +174,16 @@ st.markdown("""
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         animation: pulseGlow 2.5s infinite; /* تأثير النبض */
     }
+    div[data-testid="stFormSubmitButton"] > button *,
     [data-testid="baseButton-secondary"] * {
-        color: #000000 !important;
+        color: #0F172A !important; 
+        -webkit-text-fill-color: #0F172A !important; /* إجبار المتصفح على اللون الغامق */
         font-weight: 900 !important; 
         font-size: 16px !important;
         letter-spacing: 1px;
         text-transform: uppercase;
     }
+    div[data-testid="stFormSubmitButton"] > button:hover,
     [data-testid="baseButton-secondary"]:hover {
         transform: translateY(-3px) scale(1.02);
         box-shadow: 0 15px 30px -5px rgba(59, 130, 246, 0.6) !important;
