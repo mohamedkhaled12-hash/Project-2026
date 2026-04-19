@@ -13,6 +13,10 @@ warnings.filterwarnings('ignore')
 # 1. Page Config
 st.set_page_config(page_title="Vision Analytics AI", page_icon="✨", layout="wide")
 
+# تهيئة المفتاح في الـ Session State عشان مايتمسحش لما اليوزر يغير الصفحة
+if "gemini_api_key" not in st.session_state:
+    st.session_state.gemini_api_key = ""
+
 # ==========================================
 # 🎨 Premium UI/UX: Animations & Refined Glassmorphism
 # ==========================================
@@ -207,18 +211,6 @@ except Exception as e:
     st.stop()
 
 # ==========================================
-# 🤖 Sidebar: API Key Setup (آمن للـ Cloud)
-# ==========================================
-with st.sidebar:
-    st.markdown("<h3 style='color: #38BDF8;'>🤖 AI Assistant Setup</h3>", unsafe_allow_html=True)
-    api_key = st.text_input("أدخل مفتاح Gemini API هنا:", type="password")
-    if api_key:
-        genai.configure(api_key=api_key)
-        st.success("تم الاتصال بنجاح!")
-    else:
-        st.info("لتفعيل المساعد الذكي، أدخل مفتاح API الخاص بك.")
-
-# ==========================================
 # 🚀 Navigation Header
 # ==========================================
 st.markdown("<div class='gradient-text'>Vision Analytics</div>", unsafe_allow_html=True)
@@ -403,9 +395,33 @@ elif page == "AI Assistant 🤖":
     st.markdown("<h3 style='color: #A855F7 !important; font-weight: 700; animation: fadeInUp 0.6s ease-out forwards;'>🤖 Smart AI Assistant</h3>", unsafe_allow_html=True)
     st.markdown("<p style='color: #94A3B8 !important;'>اسألني عن النتائج، أو ارفع صورة للمخطط البياني وسأقوم بتحليله لك استناداً إلى أحدث تقنيات Gemini.</p>", unsafe_allow_html=True)
 
-    if not api_key:
-        st.warning("👈 يرجى إدخال مفتاح Gemini API في القائمة الجانبية (Sidebar) لبدء المحادثة.")
+    # ==========================================
+    # 🔑 قسم إعداد الـ API Key وإرشادات المستخدم
+    # ==========================================
+    with st.expander("🔑 إعداد مفتاح الذكاء الاصطناعي (API Key) - اضغط هنا للبدء", expanded=not st.session_state.gemini_api_key):
+        st.markdown("""
+        <h4 style='color:#38BDF8; margin-top:0;'>خطوات الحصول على مفتاح مجاني:</h4>
+        <ol style='color:#CBD5E1; line-height: 1.8; font-size: 15px;'>
+            <li>ادخل على منصة المطورين: <a href='https://aistudio.google.com/app/apikey' target='_blank' style='color:#A855F7; font-weight:bold;'>Google AI Studio</a> وسجل دخول بحساب جوجل الخاص بك.</li>
+            <li>اضغط على الزر الأزرق <b>Create API key</b> الموجود في الصفحة.</li>
+            <li>انسخ المفتاح الذي سيظهر لك (يبدأ بحروف <code>AIza...</code>) والصقه في المربع بالأسفل.</li>
+        </ol>
+        """, unsafe_allow_html=True)
+        
+        # حقل إدخال المفتاح
+        user_api_key = st.text_input("أدخل مفتاح Gemini API الخاص بك:", value=st.session_state.gemini_api_key, type="password")
+        
+        if user_api_key:
+            st.session_state.gemini_api_key = user_api_key
+            st.success("✅ تم حفظ المفتاح بنجاح! يمكنك الآن بدء المحادثة في الأسفل.")
+
+    # التأكد من وجود المفتاح قبل تشغيل الشات
+    if not st.session_state.gemini_api_key:
+        st.warning("👆 يرجى إدخال مفتاح Gemini API في المربع بالأعلى لتفعيل الشات بوت.")
     else:
+        # إعداد الاتصال بالموديل
+        genai.configure(api_key=st.session_state.gemini_api_key)
+
         # تهيئة تاريخ المحادثة
         if "messages" not in st.session_state:
             st.session_state.messages = []
@@ -454,4 +470,4 @@ elif page == "AI Assistant 🤖":
                         st.session_state.messages.append({"role": "assistant", "content": response.text})
                     
                     except Exception as e:
-                        st.error(f"حدث خطأ أثناء معالجة الطلب: {e}")
+                        st.error(f"حدث خطأ أثناء معالجة الطلب. تأكد من صلاحية الـ API Key الخاص بك. (الخطأ: {e})")
