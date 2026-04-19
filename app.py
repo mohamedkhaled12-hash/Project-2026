@@ -100,22 +100,31 @@ st.markdown("""
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         transition: all 0.3s ease;
     }
+    
+    /* التعديل هنا: إجبار جميع العناصر الداخلية في المربعات على اللون الغامق */
+    div[data-baseweb="select"] *, div[data-baseweb="base-input"] * {
+        color: #0F172A !important;
+    }
+
     div[data-baseweb="select"] > div:hover,
     div[data-baseweb="base-input"] > input:hover {
         border: 2px solid rgba(56, 189, 248, 0.5) !important;
         transform: scale(1.01); /* تكبير خفيف جداً للمربع */
     }
 
-    /* القائمة المنسدلة */
-    ul[data-baseweb="menu"] {
+    /* التعديل هنا: إصلاح القائمة المنسدلة بالكامل لتظهر الحروف الغامقة */
+    ul[data-baseweb="menu"], div[data-baseweb="popover"] {
         background-color: #F8FAFC !important;
         border-radius: 10px !important;
         box-shadow: 0 15px 35px rgba(0,0,0,0.3) !important;
     }
-    ul[data-baseweb="menu"] li {
+    ul[data-baseweb="menu"] li, ul[data-baseweb="menu"] li *, div[data-baseweb="popover"] * {
         color: #0F172A !important;
-        font-weight: 600 !important;
-        font-size: 14px !important;
+        font-weight: 700 !important;
+        font-size: 15px !important;
+        -webkit-text-fill-color: #0F172A !important;
+    }
+    ul[data-baseweb="menu"] li {
         padding: 10px 15px !important;
     }
 
@@ -165,8 +174,8 @@ st.markdown("""
         animation: pulseGlow 2.5s infinite; /* تأثير النبض */
     }
     [data-testid="baseButton-secondary"] * {
-        color: #000000 !important; /* اللون أصبح أسود داكن ليكون واضح في الـ Light Mode */
-        font-weight: 900 !important; /* خط أسمك لضمان الوضوح التام */
+        color: #000000 !important;
+        font-weight: 900 !important; 
         font-size: 16px !important;
         letter-spacing: 1px;
         text-transform: uppercase;
