@@ -165,8 +165,8 @@ st.markdown("""
         animation: pulseGlow 2.5s infinite; /* تأثير النبض */
     }
     [data-testid="baseButton-secondary"] * {
-        color: #0F172A !important; /* التعديل هنا: لون كحلي غامق ليكون واضح في الـ Light Mode */
-        font-weight: 900 !important; /* زيادة سمك الخط للوضوح */
+        color: #000000 !important; /* اللون أصبح أسود داكن ليكون واضح في الـ Light Mode */
+        font-weight: 900 !important; /* خط أسمك لضمان الوضوح التام */
         font-size: 16px !important;
         letter-spacing: 1px;
         text-transform: uppercase;
