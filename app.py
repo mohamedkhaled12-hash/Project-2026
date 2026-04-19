@@ -3,6 +3,12 @@ import pandas as pd
 import joblib
 import numpy as np
 import plotly.express as px
+import warnings
+# إضافات المساعد الذكي
+import google.generativeai as genai
+from PIL import Image
+
+warnings.filterwarnings('ignore')
 
 # 1. Page Config
 st.set_page_config(page_title="Vision Analytics AI", page_icon="✨", layout="wide")
@@ -201,12 +207,25 @@ except Exception as e:
     st.stop()
 
 # ==========================================
+# 🤖 Sidebar: API Key Setup (آمن للـ Cloud)
+# ==========================================
+with st.sidebar:
+    st.markdown("<h3 style='color: #38BDF8;'>🤖 AI Assistant Setup</h3>", unsafe_allow_html=True)
+    api_key = st.text_input("أدخل مفتاح Gemini API هنا:", type="password")
+    if api_key:
+        genai.configure(api_key=api_key)
+        st.success("تم الاتصال بنجاح!")
+    else:
+        st.info("لتفعيل المساعد الذكي، أدخل مفتاح API الخاص بك.")
+
+# ==========================================
 # 🚀 Navigation Header
 # ==========================================
 st.markdown("<div class='gradient-text'>Vision Analytics</div>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #94A3B8 !important; margin-bottom: 25px; font-size: 1.1rem; animation: fadeInUp 0.4s ease-out forwards;'>Empowered by Advanced Machine Learning</p>", unsafe_allow_html=True)
 
-page = st.radio("", ["Student Risk Analysis", "App Behavior Analysis"], horizontal=True, label_visibility="collapsed")
+# ✨ إضافة الصفحة الثالثة للـ Navigation
+page = st.radio("", ["Student Risk Analysis", "App Behavior Analysis", "AI Assistant 🤖"], horizontal=True, label_visibility="collapsed")
 
 # ------------------------------------------------------------------
 # Page 1: Student Risk Analysis
@@ -229,173 +248,210 @@ if page == "Student Risk Analysis":
 
         with col1:
             st.markdown("<b style='color:#38BDF8 !important; font-size: 18px;'>🧬 Psychological Factors</b>", unsafe_allow_html=True)
-            stress = st.selectbox("Stress Level:", options=list(stress_map.keys()))
-            anxiety = st.selectbox("Anxiety Level:", options=list(anxiety_map.keys()))
-            depression = st.selectbox("Mood & Energy Levels:", options=list(dep_map.keys()))
-
+            stress = st.selectbox("Stress Level:", list(stress_map.keys()))
+            anxiety = st.selectbox("Anxiety Level:", list(anxiety_map.keys()))
+            depression = st.selectbox("Mood & Energy:", list(dep_map.keys()))
         with col2:
             st.markdown("<b style='color:#38BDF8 !important; font-size: 18px;'>🌍 Environmental Factors</b>", unsafe_allow_html=True)
-            support = st.selectbox("Social Support Network:", list(support_map.keys()))
-            sleep = st.selectbox("Average Daily Sleep:", list(sleep_map.keys()))
-            exams = st.selectbox("Academic Workload:", options=list(exam_map.keys()))
-
-        st.markdown("<br>", unsafe_allow_html=True)
+            support = st.selectbox("Social Support:", list(support_map.keys()))
+            sleep = st.selectbox("Daily Sleep:", list(sleep_map.keys()))
+            exams = st.selectbox("Academic Workload:", list(exam_map.keys()))
         submit_risk = st.form_submit_button("Initiate AI Analysis", use_container_width=True)
 
     if submit_risk:
-        features = pd.DataFrame([[
-            stress_map[stress], anxiety_map[anxiety], dep_map[depression],
-            support_map[support], sleep_map[sleep], exam_map[exams]
-        ]], columns=['stress_level', 'anxiety_score', 'depression_score', 'social_support', 'sleep_hours', 'exam_pressure'])
+        features = pd.DataFrame([{
+            'stress_level': float(stress_map[stress]), 'anxiety_score': float(anxiety_map[anxiety]),
+            'depression_score': float(dep_map[depression]), 'social_support': float(support_map[support]),
+            'sleep_hours': float(sleep_map[sleep]), 'exam_pressure': float(exam_map[exams])
+        }])
 
-        with st.spinner("Processing neural pathways..."):
+        with st.spinner("Processing..."):
             probs = risk_model.predict_proba(features)[0]
             clean_classes = [str(c).strip().title() for c in encoder.classes_]
-            max_idx = np.argmax(probs)
-            base_label = clean_classes[max_idx]
-            
             prob_dict = {c: p for c, p in zip(clean_classes, probs)}
-            high_prob = prob_dict.get('High', 0.0)
-            medium_prob = prob_dict.get('Medium', 0.0)
             
-            if high_prob >= 0.25:
-                final_label = 'High'
-            elif medium_prob >= 0.35:
-                final_label = 'Medium'
-            else:
-                final_label = base_label
+            if prob_dict.get('High', 0.0) >= 0.25: final_label = 'High'
+            elif prob_dict.get('Medium', 0.0) >= 0.35: final_label = 'Medium'
+            else: final_label = clean_classes[np.argmax(probs)]
 
-        st.markdown("<h3 style='margin-top: 35px; color:#F8FAFC; animation: fadeInUp 0.4s ease-out forwards;'>🎯 Predictive Intelligence Result</h3>", unsafe_allow_html=True)
-        res_col1, res_col2 = st.columns([1, 1.5], gap="large")
+            # 💡 حفظ النتيجة في السياق ليستخدمها المساعد الذكي لاحقاً
+            st.session_state['last_analysis_context'] = f"The user analyzed Student Risk. Result: {final_label} Risk."
 
+        res_col1, res_col2 = st.columns([1, 1.5])
         with res_col1:
-            st.markdown('<div class="metric-card" style="text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%;">', unsafe_allow_html=True)
-            if 'High' in final_label:
-                st.markdown("<h2 style='color:#F43F5E !important; font-weight: 900; font-size: 2.5rem; margin-bottom:5px;'>🚨 HIGH RISK</h2>", unsafe_allow_html=True)
-                st.markdown("<p style='color:#CBD5E1 !important; font-size: 16px; font-weight: 500 !important;'>Immediate clinical intervention recommended.</p>", unsafe_allow_html=True)
-            elif 'Medium' in final_label:
-                st.markdown("<h2 style='color:#FBBF24 !important; font-weight: 900; font-size: 2.5rem; margin-bottom:5px;'>🟡 MEDIUM RISK</h2>", unsafe_allow_html=True)
-                st.markdown("<p style='color:#CBD5E1 !important; font-size: 16px; font-weight: 500 !important;'>Proactive monitoring and counseling advised.</p>", unsafe_allow_html=True)
-            else:
-                st.markdown("<h2 style='color:#34D399 !important; font-weight: 900; font-size: 2.5rem; margin-bottom:5px;'>✅ LOW RISK</h2>", unsafe_allow_html=True)
-                st.markdown("<p style='color:#CBD5E1 !important; font-size: 16px; font-weight: 500 !important;'>Profile indicates high emotional resilience.</p>", unsafe_allow_html=True)
+            st.markdown('<div class="metric-card" style="text-align: center;">', unsafe_allow_html=True)
+            if 'High' in final_label: st.markdown("<h2 style='color:#F43F5E;'>🚨 HIGH RISK</h2>", unsafe_allow_html=True)
+            elif 'Medium' in final_label: st.markdown("<h2 style='color:#FBBF24;'>🟡 MEDIUM RISK</h2>", unsafe_allow_html=True)
+            else: st.markdown("<h2 style='color:#34D399;'>✅ LOW RISK</h2>", unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
         with res_col2:
             st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            neon_colors = {'High':'#F43F5E', 'Medium':'#FBBF24', 'Low':'#34D399'}
-
-            fig = px.bar(
-                x=probs*100, y=clean_classes, orientation='h',
-                labels={'x':'Confidence Probability (%)', 'y':''},
-                color=clean_classes,
-                color_discrete_map=neon_colors,
-                text=np.round(probs*100, 1),
-                title="AI Confidence Distribution"
-            )
-            fig.update_traces(textposition='inside', textfont=dict(color='white', size=14, family='Inter, sans-serif'), marker_line_color='rgba(255,255,255,0.2)', marker_line_width=1)
-            fig.update_layout(
-                plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-                margin=dict(l=0, r=0, t=40, b=0), height=220, showlegend=False,
-                font=dict(color='#F8FAFC', size=13, family='Inter, sans-serif'),
-                xaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.05)', title_font=dict(color='#94A3B8')),
-                title_font=dict(size=16, color='#94A3B8')
-            )
+            fig = px.bar(x=probs*100, y=clean_classes, orientation='h', color=clean_classes, color_discrete_map={'High':'#F43F5E', 'Medium':'#FBBF24', 'Low':'#34D399'})
+            fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#F8FAFC'), height=200, showlegend=False)
             st.plotly_chart(fig, use_container_width=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
 # Page 2: App Behavior Analysis
 # ------------------------------------------------------------------
-else:
-    st.markdown("<h3 style='color: #67E8F9 !important; font-weight: 700; display:flex; align-items:center; gap:10px; animation: fadeInUp 0.6s ease-out forwards;'>📱 App Behavior Tech-Metrics</h3>", unsafe_allow_html=True)
+elif page == "App Behavior Analysis":
+    st.markdown("<h3 style='color: #67E8F9 !important;'>📱 App Behavior Tech-Metrics</h3>", unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
 
-    with st.expander("💡 How to find these metrics on your phone? (Quick Guide)"):
+    with st.expander("💡 Guide: How to find these metrics on your phone?"):
         col_android, col_ios = st.columns(2)
+        
         with col_android:
             st.markdown("<h4 style='color:#34D399; margin-bottom:5px;'>🤖 Android Devices</h4>", unsafe_allow_html=True)
             st.markdown("""
-            * **Screen On Time & App Usage:** Go to **Settings** > **Digital Wellbeing & parental controls** > Dashboard.
-            * **Battery Drain:** Go to **Settings** > **Battery** > **Battery usage**.
-            * **Data Usage:** Go to **Settings** > **Network & internet** > **Internet** > App data usage.
+            * **Screen On Time & Usage Time:** Go to **Settings > Digital Wellbeing & parental controls**.
+            * **Battery Drain:** Go to **Settings > Battery > Battery usage**.
+            * **Data Usage:** Go to **Settings > Network & internet > Internet > App data usage**.
             """)
+            
         with col_ios:
             st.markdown("<h4 style='color:#F87171; margin-bottom:5px;'>🍏 iOS (iPhone)</h4>", unsafe_allow_html=True)
             st.markdown("""
-            * **Screen On Time & App Usage:** Go to **Settings** > **Screen Time** > See All Activity.
-            * **Battery Drain:** Go to **Settings** > **Battery** (Check the 'Last 24 Hours' usage).
-            * **Data Usage:** Go to **Settings** > **Cellular** > Scroll down to 'Cellular Data'.
+            * **Screen On Time & Usage Time:** Go to **Settings > Screen Time > See All Activity**.
+            * **Battery Drain:** Go to **Settings > Battery**.
+            * **Data Usage:** Go to **Settings > Cellular** (scroll down to Cellular Data).
             """)
             
-        st.markdown("<hr style='border-color: rgba(255,255,255,0.1);'>", unsafe_allow_html=True)
-        st.markdown("<h4 style='color:#A855F7; margin-bottom:5px;'>🔋 How to calculate Battery Drain (mAh) from Percentage (%)?</h4>", unsafe_allow_html=True)
+        st.markdown("<hr style='border-color: rgba(255,255,255,0.1); margin: 15px 0;'>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#A855F7; margin-bottom:5px;'>🔋 How to calculate Battery Drain (mAh)?</h4>", unsafe_allow_html=True)
         st.markdown("""
-        Phones usually show battery drain as a percentage (e.g., "Used 40% today"). To input **mAh** into the model, use this simple formula:
-        > **Formula:** `(Percentage Used ÷ 100) × Total Battery Capacity (mAh)`
+        Most phones display battery usage as a percentage (e.g., 50%). To convert this into **mAh** for the model, use this simple formula:
+        > **` (Percentage Used ÷ 100) × Total Battery Capacity (mAh) `**
         
-        **Example:** If you used **50%** of your battery today, and your phone has a **4000 mAh** battery capacity:
-        * `(50 ÷ 100) × 4000 = ` **`2000 mAh`**
+        *Example:* If you used 40% of a 5000 mAh battery: `(40 ÷ 100) × 5000 = 2000 mAh`.
         """, unsafe_allow_html=True)
 
     with st.form("app_behavior_form"):
         st.subheader("⚙️ Technical Telemetry")
         st.markdown("<hr style='border-color: rgba(255,255,255,0.1); margin: 10px 0 25px 0;'>", unsafe_allow_html=True)
         col1, col2 = st.columns(2, gap="large")
-
         with col1:
-            st.markdown("<b style='color:#D8B4FE !important; font-size: 18px;'>👤 User Demographics</b>", unsafe_allow_html=True)
             age = st.number_input("Age:", 10, 100, 20)
             gender = st.selectbox("Gender:", ["Male", "Female"])
-            num_apps = st.number_input("Number of Apps Installed:", 0, 500, 50)
-
+            num_apps = st.number_input("Apps Installed:", 0, 500, 50)
         with col2:
-            st.markdown("<b style='color:#D8B4FE !important; font-size: 18px;'>🔋 Device Usage Metrics</b>", unsafe_allow_html=True)
-            screen_time = st.number_input("Screen On Time (hours/day):", 0.0, 24.0, 5.0)
-            battery = st.number_input("Battery Drain (mAh/day):", 0, 10000, 2000)
-            data_usage = st.number_input("Data Usage (MB/day):", 0, 50000, 1000)
-            app_usage = st.number_input("App Usage Time (min/day):", 0, 1440, 300)
-
-        st.markdown("<br>", unsafe_allow_html=True)
+            screen_time = st.number_input("Screen Time (hours):", 0.0, 24.0, 5.0)
+            battery = st.number_input("Battery Drain (mAh):", 0, 10000, 2000)
+            data_usage = st.number_input("Data (MB):", 0, 50000, 1000)
+            app_usage = st.number_input("Usage Time (min):", 0, 1440, 300)
         submit_app = st.form_submit_button("ANALYZE USER BEHAVIOR", use_container_width=True)
 
     if submit_app:
-        try:
-            if hasattr(app_model, 'feature_names_in_'): expected_cols = list(app_model.feature_names_in_)
-            elif hasattr(app_model, 'steps') and hasattr(app_model.steps[0][1], 'feature_names_in_'): expected_cols = list(app_model.steps[0][1].feature_names_in_)
-            else: expected_cols = ['App Usage Time (min/day)', 'Screen On Time (hours/day)', 'Battery Drain (mAh/day)', 'Number of Apps Installed', 'Data Usage (MB/day)', 'Age', 'Gender']
-
+        with st.spinner("Analyzing..."):
             raw_data = {
-                'App Usage Time (min/day)': float(app_usage), 'Screen On Time (hours/day)': float(screen_time),
-                'Battery Drain (mAh/day)': float(battery), 'Number of Apps Installed': float(num_apps),
-                'Data Usage (MB/day)': float(data_usage), 'Age': float(age), 'Gender': gender
+                'App Usage Time (min/day)': [float(app_usage)],
+                'Screen On Time (hours/day)': [float(screen_time)],
+                'Battery Drain (mAh/day)': [float(battery)],
+                'Number of Apps Installed': [float(num_apps)],
+                'Data Usage (MB/day)': [float(data_usage)],
+                'Age': [float(age)],
+                'Gender': [gender]
             }
+            
+            df_app = pd.DataFrame(raw_data)
+            
+            if hasattr(app_model, 'feature_names_in_'):
+                expected_cols = list(app_model.feature_names_in_)
+                
+                if 'Gender_Male' in expected_cols:
+                    df_app['Gender_Male'] = 1.0 if gender == "Male" else 0.0
+                    df_app['Gender_Female'] = 1.0 if gender == "Female" else 0.0
+                    if 'Gender' in df_app.columns:
+                        df_app = df_app.drop(columns=['Gender'])
+                
+                df_app = df_app.reindex(columns=expected_cols, fill_value=0.0)
 
-            df_app = pd.DataFrame(columns=expected_cols)
-            df_app.loc[0] = 0.0
-
-            for col in expected_cols:
-                clean_col = col.strip()
-                if clean_col in raw_data: df_app.at[0, col] = raw_data[clean_col]
-                elif 'gender' in clean_col.lower(): df_app.at[0, col] = raw_data['Gender']
-
-            with st.spinner("Processing technical metrics..."):
+            try:
+                pred = app_model.predict(df_app)[0]
+                success = True
+            except Exception as e1:
                 try:
+                    df_app['Gender'] = 1.0 if gender == "Male" else 0.0
+                    df_app = df_app.astype(float)
                     pred = app_model.predict(df_app)[0]
-                    st.markdown('<div class="metric-card" style="text-align: center; margin-top:25px; animation: fadeInUp 0.5s ease-out forwards;">', unsafe_allow_html=True)
-                    st.markdown(f"<h3 style='color:#CBD5E1 !important; font-size:1.5rem; font-weight:600; margin-bottom:10px;'>Predicted Class</h3><h1 style='color:#22D3EE !important; font-size:3.5rem; font-weight:900; margin:0;'>{pred}</h1>", unsafe_allow_html=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
-                except Exception as e_inner:
-                    if 'isnan' in str(e_inner).lower() or 'convert' in str(e_inner).lower():
-                        for col in expected_cols:
-                            if 'gender' in col.lower(): df_app.at[0, col] = 1.0 if gender == "Male" else 0.0
-                        df_app = df_app.astype(float)
-                        pred = app_model.predict(df_app)[0]
-                        st.markdown('<div class="metric-card" style="text-align: center; margin-top:25px; animation: fadeInUp 0.5s ease-out forwards;">', unsafe_allow_html=True)
-                        st.markdown(f"<h3 style='color:#CBD5E1 !important; font-size:1.5rem; font-weight:600; margin-bottom:10px;'>Predicted Class</h3><h1 style='color:#22D3EE !important; font-size:3.5rem; font-weight:900; margin:0;'>{pred}</h1>", unsafe_allow_html=True)
-                        st.markdown('</div>', unsafe_allow_html=True)
-                    else:
-                        st.error(f"Prediction Error: {e_inner}")
+                    success = True
+                except Exception as e2:
+                    success = False
+                    st.error("⚠️ الموديل رافض شكل البيانات! دي رسالة الخطأ:")
+                    st.code(str(e2))
+                    
+                    if hasattr(app_model, 'feature_names_in_'):
+                        st.warning("🔍 الموديل متدرب ومستني الأعمدة دي بالظبط (انسخها عشان نعرف المشكلة):")
+                        st.write(list(app_model.feature_names_in_))
+            
+            if success:
+                # 💡 حفظ النتيجة في السياق ليستخدمها المساعد الذكي لاحقاً
+                st.session_state['last_analysis_context'] = f"The user analyzed App Behavior. Predicted Class: {int(pred)}."
 
-        except Exception as e_outer:
-            st.error(f"Unexpected Error: {e_outer}")
+                st.markdown(f"""
+                    <div class="metric-card" style="text-align: center; margin-top:25px;">
+                        <h3 style='color:#CBD5E1 !important;'>Predicted Class</h3>
+                        <h1 style='color:#22D3EE !important; font-size:3.5rem; font-weight:900;'>{int(pred)}</h1>
+                    </div>
+                """, unsafe_allow_html=True)
+
+# ------------------------------------------------------------------
+# Page 3: AI Assistant 🤖 (الجديدة)
+# ------------------------------------------------------------------
+elif page == "AI Assistant 🤖":
+    st.markdown("<h3 style='color: #A855F7 !important; font-weight: 700; animation: fadeInUp 0.6s ease-out forwards;'>🤖 Smart AI Assistant</h3>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #94A3B8 !important;'>اسألني عن النتائج، أو ارفع صورة للمخطط البياني وسأقوم بتحليله لك استناداً إلى أحدث تقنيات Gemini.</p>", unsafe_allow_html=True)
+
+    if not api_key:
+        st.warning("👈 يرجى إدخال مفتاح Gemini API في القائمة الجانبية (Sidebar) لبدء المحادثة.")
+    else:
+        # تهيئة تاريخ المحادثة
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+
+        # عرض المحادثات السابقة
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+        # واجهة رفع الصورة (اختياري)
+        with st.expander("📷 إرفاق صورة للتحليل (اختياري)"):
+            uploaded_file = st.file_uploader("اختر صورة (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
+            if uploaded_file is not None:
+                st.image(uploaded_file, caption="الصورة المرفوعة", width=250)
+
+        # مربع المحادثة
+        if prompt := st.chat_input("اكتب سؤالك هنا... (مثال: اشرح لي نتيجتي الأخيرة)"):
+            
+            # عرض رسالة المستخدم
+            with st.chat_message("user"):
+                st.markdown(prompt)
+            st.session_state.messages.append({"role": "user", "content": prompt})
+
+            # تجهيز السياق للموديل
+            sys_instruct = "أنت مساعد ذكي مدمج في تطبيق (Vision Analytics) لتحليل بيانات الطلاب وسلوك التطبيقات. أجب باحترافية وبطريقة تساعد المستخدم على فهم البيانات."
+            if 'last_analysis_context' in st.session_state:
+                sys_instruct += f"\n[سياق مخفي]: أحدث نتيجة تحليل قام بها المستخدم هي: {st.session_state['last_analysis_context']}"
+
+            # إعداد الموديل الصحيح بناءً على ما اكتشفناه
+            model = genai.GenerativeModel(
+                model_name='gemini-2.5-flash',
+                system_instruction=sys_instruct
+            )
+
+            # طلب الرد
+            with st.chat_message("assistant"):
+                with st.spinner("جاري التحليل... 🧠"):
+                    try:
+                        if uploaded_file is not None:
+                            img = Image.open(uploaded_file)
+                            response = model.generate_content([prompt, img])
+                        else:
+                            response = model.generate_content(prompt)
+                        
+                        st.markdown(response.text)
+                        st.session_state.messages.append({"role": "assistant", "content": response.text})
+                    
+                    except Exception as e:
+                        st.error(f"حدث خطأ أثناء معالجة الطلب: {e}")
