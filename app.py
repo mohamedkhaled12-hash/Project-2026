@@ -13,10 +13,6 @@ warnings.filterwarnings('ignore')
 # 1. Page Config
 st.set_page_config(page_title="Vision Analytics AI", page_icon="✨", layout="wide")
 
-# تهيئة المفتاح في الـ Session State عشان مايتمسحش لما اليوزر يغير الصفحة
-if "gemini_api_key" not in st.session_state:
-    st.session_state.gemini_api_key = ""
-
 # ==========================================
 # 🎨 Premium UI/UX: Animations & Refined Glassmorphism
 # ==========================================
@@ -402,85 +398,63 @@ elif page == "App Behavior Analysis":
                 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
-# Page 3: AI Assistant 🤖 (الجديدة)
+# Page 3: AI Assistant 🤖 (الجديدة بدون طلب مفتاح من المستخدم)
 # ------------------------------------------------------------------
 elif page == "AI Assistant 🤖":
     st.markdown("<h3 style='color: #A855F7 !important; font-weight: 700; animation: fadeInUp 0.6s ease-out forwards;'>🤖 Smart AI Assistant</h3>", unsafe_allow_html=True)
     st.markdown("<p style='color: #94A3B8 !important;'>اسألني عن النتائج، أو ارفع صورة للمخطط البياني وسأقوم بتحليله لك استناداً إلى أحدث تقنيات Gemini.</p>", unsafe_allow_html=True)
 
-    # ==========================================
-    # 🔑 قسم إعداد الـ API Key وإرشادات المستخدم
-    # ==========================================
-    with st.expander("🔑 إعداد مفتاح الذكاء الاصطناعي (API Key) - اضغط هنا للبدء", expanded=not st.session_state.gemini_api_key):
-        st.markdown("""
-        <h4 style='color:#38BDF8; margin-top:0;'>خطوات الحصول على مفتاح مجاني:</h4>
-        <ol style='color:#CBD5E1; line-height: 1.8; font-size: 15px;'>
-            <li>ادخل على منصة المطورين: <a href='https://aistudio.google.com/app/apikey' target='_blank' style='color:#A855F7; font-weight:bold;'>Google AI Studio</a> وسجل دخول بحساب جوجل الخاص بك.</li>
-            <li>اضغط على الزر الأزرق <b>Create API key</b> الموجود في الصفحة.</li>
-            <li>انسخ المفتاح الذي سيظهر لك (يبدأ بحروف <code>AIza...</code>) والصقه في المربع بالأسفل.</li>
-        </ol>
-        """, unsafe_allow_html=True)
+    # 🔑 إعداد الـ API بشكل مخفي في الكود (قم بوضع مفتاحك هنا)
+    MY_API_KEY = "ضع_مفتاحك_الحقيقي_هنا"
+    
+    genai.configure(api_key=MY_API_KEY)
+
+    # تهيئة تاريخ المحادثة
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    # عرض المحادثات السابقة
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    # واجهة رفع الصورة (اختياري)
+    with st.expander("📷 إرفاق صورة للتحليل (اختياري)"):
+        uploaded_file = st.file_uploader("اختر صورة (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
+        if uploaded_file is not None:
+            st.image(uploaded_file, caption="الصورة المرفوعة", width=250)
+
+    # مربع المحادثة
+    if prompt := st.chat_input("اكتب سؤالك هنا... (مثال: اشرح لي نتيجتي الأخيرة)"):
         
-        # حقل إدخال المفتاح
-        user_api_key = st.text_input("أدخل مفتاح Gemini API الخاص بك:", value=st.session_state.gemini_api_key, type="password")
-        
-        if user_api_key:
-            st.session_state.gemini_api_key = user_api_key
-            st.success("✅ تم حفظ المفتاح بنجاح! يمكنك الآن بدء المحادثة في الأسفل.")
+        # عرض رسالة المستخدم
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        st.session_state.messages.append({"role": "user", "content": prompt})
 
-    # التأكد من وجود المفتاح قبل تشغيل الشات
-    if not st.session_state.gemini_api_key:
-        st.warning("👆 يرجى إدخال مفتاح Gemini API في المربع بالأعلى لتفعيل الشات بوت.")
-    else:
-        # إعداد الاتصال بالموديل
-        genai.configure(api_key=st.session_state.gemini_api_key)
+        # تجهيز السياق للموديل
+        sys_instruct = "أنت مساعد ذكي مدمج في تطبيق (Vision Analytics) لتحليل بيانات الطلاب وسلوك التطبيقات. أجب باحترافية وبطريقة تساعد المستخدم على فهم البيانات."
+        if 'last_analysis_context' in st.session_state:
+            sys_instruct += f"\n[سياق مخفي]: أحدث نتيجة تحليل قام بها المستخدم هي: {st.session_state['last_analysis_context']}"
 
-        # تهيئة تاريخ المحادثة
-        if "messages" not in st.session_state:
-            st.session_state.messages = []
+        # استخدام موديل gemini-2.0-flash لتفادي مشكلة الـ Limit الخاصة بـ 2.5
+        model = genai.GenerativeModel(
+            model_name='gemini-2.0-flash',
+            system_instruction=sys_instruct
+        )
 
-        # عرض المحادثات السابقة
-        for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
-
-        # واجهة رفع الصورة (اختياري)
-        with st.expander("📷 إرفاق صورة للتحليل (اختياري)"):
-            uploaded_file = st.file_uploader("اختر صورة (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
-            if uploaded_file is not None:
-                st.image(uploaded_file, caption="الصورة المرفوعة", width=250)
-
-        # مربع المحادثة
-        if prompt := st.chat_input("اكتب سؤالك هنا... (مثال: اشرح لي نتيجتي الأخيرة)"):
-            
-            # عرض رسالة المستخدم
-            with st.chat_message("user"):
-                st.markdown(prompt)
-            st.session_state.messages.append({"role": "user", "content": prompt})
-
-            # تجهيز السياق للموديل
-            sys_instruct = "أنت مساعد ذكي مدمج في تطبيق (Vision Analytics) لتحليل بيانات الطلاب وسلوك التطبيقات. أجب باحترافية وبطريقة تساعد المستخدم على فهم البيانات."
-            if 'last_analysis_context' in st.session_state:
-                sys_instruct += f"\n[سياق مخفي]: أحدث نتيجة تحليل قام بها المستخدم هي: {st.session_state['last_analysis_context']}"
-
-            # إعداد الموديل الصحيح بناءً على ما اكتشفناه
-            model = genai.GenerativeModel(
-                model_name='gemini-2.5-flash',
-                system_instruction=sys_instruct
-            )
-
-            # طلب الرد
-            with st.chat_message("assistant"):
-                with st.spinner("جاري التحليل... 🧠"):
-                    try:
-                        if uploaded_file is not None:
-                            img = Image.open(uploaded_file)
-                            response = model.generate_content([prompt, img])
-                        else:
-                            response = model.generate_content(prompt)
-                        
-                        st.markdown(response.text)
-                        st.session_state.messages.append({"role": "assistant", "content": response.text})
+        # طلب الرد
+        with st.chat_message("assistant"):
+            with st.spinner("جاري التحليل... 🧠"):
+                try:
+                    if uploaded_file is not None:
+                        img = Image.open(uploaded_file)
+                        response = model.generate_content([prompt, img])
+                    else:
+                        response = model.generate_content(prompt)
                     
-                    except Exception as e:
-                        st.error(f"حدث خطأ أثناء معالجة الطلب. تأكد من صلاحية الـ API Key الخاص بك. (الخطأ: {e})")
+                    st.markdown(response.text)
+                    st.session_state.messages.append({"role": "assistant", "content": response.text})
+                
+                except Exception as e:
+                    st.error(f"حدث خطأ أثناء معالجة الطلب. (الخطأ: {e})")
