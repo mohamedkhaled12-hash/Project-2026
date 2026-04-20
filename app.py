@@ -276,7 +276,7 @@ if page == "Student Risk Analysis":
             else: final_label = clean_classes[np.argmax(probs)]
 
             # 💡 حفظ النتيجة في السياق ليستخدمها المساعد الذكي لاحقاً
-            st.session_state['last_analysis_context'] = f"The user analyzed Student Risk. Result: {final_label} Risk."
+            st.session_state['last_analysis_context'] = f"قام المستخدم بتحليل (Student Risk Analysis). النتيجة هي: مستوى خطر {final_label}."
 
         res_col1, res_col2 = st.columns([1, 1.5])
         with res_col1:
@@ -388,7 +388,7 @@ elif page == "App Behavior Analysis":
             
             if success:
                 # 💡 حفظ النتيجة في السياق ليستخدمها المساعد الذكي لاحقاً
-                st.session_state['last_analysis_context'] = f"The user analyzed App Behavior. Predicted Class: {int(pred)}."
+                st.session_state['last_analysis_context'] = f"قام المستخدم للتو بتحليل (App Behavior Analysis). النتيجة هي: المستخدم ينتمي للفئة (Class {int(pred)})."
 
                 st.markdown(f"""
                     <div class="metric-card" style="text-align: center; margin-top:25px;">
@@ -462,12 +462,20 @@ elif page == "AI Assistant 🤖":
                 st.markdown(prompt)
             st.session_state.messages.append({"role": "user", "content": prompt})
 
-            # تجهيز السياق للموديل
-            sys_instruct = "أنت مساعد ذكي مدمج في تطبيق (Vision Analytics) لتحليل بيانات الطلاب وسلوك التطبيقات. أجب باحترافية وبطريقة تساعد المستخدم على فهم البيانات."
+            # ==========================================
+            # 🚀 التعديل الجذري هنا: تعليمات الموديل (System Prompt)
+            # ==========================================
+            sys_instruct = """أنت مهندس بيانات ومساعد ذكي مدمج في منصة 'Vision Analytics'. وظيفتك تحليل البيانات والرد على استفسارات المستخدمين باحترافية وتقديم رؤى واضحة.
+            يجب أن تفهم جيداً أن هذه المنصة تحتوي على نظامين منفصلين للذكاء الاصطناعي:
+            1. نظام الصفحة الأولى (Student Risk Analysis): يتوقع احتمالية تعرض الطالب للخطر (مثل التسرب الدراسي أو الانهيار النفسي) بناءً على عوامل نفسية وبيئية (التوتر، القلق، الاكتئاب، الدعم الاجتماعي، النوم، وضغط الامتحانات). النتائج تكون (Low, Medium, High Risk).
+            2. نظام الصفحة الثانية (App Behavior Analysis): يحلل السلوك التقني لمستخدمي الهواتف الذكية وتصنيفهم إلى فئات (Classes) بناءً على استخدام التطبيقات، وقت الشاشة، استهلاك البطارية، واستهلاك البيانات.
+            
+            بناءً على هذا الفهم، قم بالإجابة على أسئلة المستخدم أو تحليل الصور التي يرفعها للنتائج والمخططات البيانية بدقة عالية، وقدم نصائح عملية ومباشرة لحل المشاكل التي تظهر في البيانات."""
+            
             if 'last_analysis_context' in st.session_state:
-                sys_instruct += f"\n[سياق مخفي]: أحدث نتيجة تحليل قام بها المستخدم هي: {st.session_state['last_analysis_context']}"
+                sys_instruct += f"\n\n[سياق مخفي هام جداً للإجابة]: أحدث نتيجة تحليل قام بها المستخدم للتو على المنصة هي: {st.session_state['last_analysis_context']}"
 
-            # 🚀 التعديل الجذري هنا: استخدام الموديل المستقر الذي يتلافى مشكلة limit: 0
+            # استخدام الموديل المستقر
             model = genai.GenerativeModel(
                 model_name='gemini-flash-latest',
                 system_instruction=sys_instruct
