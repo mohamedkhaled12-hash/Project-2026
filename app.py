@@ -7,11 +7,55 @@ import warnings
 # إضافات المساعد الذكي
 import google.generativeai as genai
 from PIL import Image
+# 📊 إضافات قاعدة البيانات
+import json
+import gspread
+from google.oauth2.service_account import Credentials
+from datetime import datetime
 
 warnings.filterwarnings('ignore')
 
 # 1. Page Config
 st.set_page_config(page_title="Vision Analytics AI", page_icon="✨", layout="wide")
+
+# ==========================================
+# 📊 إعداد الاتصال بقاعدة بيانات Google Sheets
+# ==========================================
+@st.cache_resource
+def get_gspread_client():
+    try:
+        # قراءة المفتاح من الـ Secrets
+        creds_json = st.secrets["GOOGLE_CREDENTIALS"]
+        if isinstance(creds_json, str):
+            creds_dict = json.loads(creds_json)
+        else:
+            creds_dict = creds_json
+        
+        scopes = [
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
+        creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
+        client = gspread.authorize(creds)
+        return client
+    except Exception as e:
+        return None
+
+db_client = get_gspread_client()
+
+def log_data(sheet_tab, row_data):
+    if db_client:
+        try:
+            # يفتح الشيت الرئيسي ويبحث عن الـ Tab المطلوبة (Students أو Apps)
+            sheet = db_client.open("Vision_Analytics_DB").worksheet(sheet_tab)
+            # يضيف سطر جديد يحتوي على الوقت والتاريخ + البيانات
+            sheet.append_row([datetime.now().strftime("%Y-%m-%d %H:%M:%S")] + row_data)
+        except Exception:
+            pass  # تجاهل الأخطاء بصمت لعدم إفساد تجربة المستخدم
+
+# تهيئة المفتاح في الـ Session State عشان مايتمسحش لما اليوزر يغير الصفحة
+if "gemini_api_key" not in st.session_state:
+    st.session_state.gemini_api_key = ""
 
 # ==========================================
 # 🎨 Premium UI/UX: Animations & Refined Glassmorphism
@@ -277,6 +321,9 @@ if page == "Student Risk Analysis":
 
             # 💡 حفظ النتيجة في السياق ليستخدمها المساعد الذكي لاحقاً
             st.session_state['last_analysis_context'] = f"قام المستخدم للتو بتحليل (Student Risk Analysis). النتيجة هي: مستوى خطر {final_label}."
+            
+            # 📊 تسجيل البيانات في الخلفية
+            log_data("Students", [stress, anxiety, depression, support, sleep, exams, final_label])
 
         res_col1, res_col2 = st.columns([1, 1.5])
         with res_col1:
@@ -389,6 +436,9 @@ elif page == "App Behavior Analysis":
             if success:
                 # 💡 حفظ النتيجة في السياق ليستخدمها المساعد الذكي لاحقاً
                 st.session_state['last_analysis_context'] = f"قام المستخدم للتو بتحليل (App Behavior Analysis). النتيجة هي: المستخدم ينتمي للفئة (Class {int(pred)})."
+                
+                # 📊 تسجيل البيانات في الخلفية
+                log_data("Apps", [age, gender, num_apps, screen_time, battery, data_usage, app_usage, int(pred)])
 
                 st.markdown(f"""
                     <div class="metric-card" style="text-align: center; margin-top:25px;">
@@ -463,7 +513,7 @@ elif page == "AI Assistant 🤖":
             st.session_state.messages.append({"role": "user", "content": prompt})
 
             # ==========================================
-            # 🚀 التعديل الجذري هنا: تعليمات الموديل (System Prompt) المحدثة
+            # 🚀 تعليمات الموديل (System Prompt) المحدثة
             # ==========================================
             sys_instruct = """أنت مهندس بيانات ومساعد ذكي مدمج في منصة 'Vision Analytics'. وظيفتك تحليل البيانات والرد على استفسارات المستخدمين باحترافية وتقديم رؤى واضحة.
             يجب أن تفهم جيداً أن هذه المنصة تحتوي على نظامين منفصلين للذكاء الاصطناعي:
