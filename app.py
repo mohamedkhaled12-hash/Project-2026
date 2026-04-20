@@ -97,7 +97,7 @@ st.markdown("""
         transition: all 0.3s ease;
     }
     
-    /* التعديل هنا: إجبار جميع العناصر الداخلية في المربعات على اللون الغامق */
+    /* إجبار جميع العناصر الداخلية في المربعات على اللون الغامق */
     div[data-baseweb="select"] *, div[data-baseweb="base-input"] * {
         color: #0F172A !important;
     }
@@ -160,7 +160,7 @@ st.markdown("""
         letter-spacing: 0.3px;
     }
 
-    /* 6. التعديل الجذري هنا: استهداف أزرار (Form Submit) بشكل مباشر جداً */
+    /* 6. استهداف أزرار (Form Submit) بشكل مباشر جداً */
     div[data-testid="stFormSubmitButton"] > button,
     [data-testid="baseButton-secondary"] {
         background: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%) !important;
@@ -398,63 +398,96 @@ elif page == "App Behavior Analysis":
                 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
-# Page 3: AI Assistant 🤖 (الجديدة بدون طلب مفتاح من المستخدم)
+# Page 3: AI Assistant 🤖 (نظام الهجين الذكي - Smart Hybrid)
 # ------------------------------------------------------------------
 elif page == "AI Assistant 🤖":
     st.markdown("<h3 style='color: #A855F7 !important; font-weight: 700; animation: fadeInUp 0.6s ease-out forwards;'>🤖 Smart AI Assistant</h3>", unsafe_allow_html=True)
     st.markdown("<p style='color: #94A3B8 !important;'>اسألني عن النتائج، أو ارفع صورة للمخطط البياني وسأقوم بتحليله لك استناداً إلى أحدث تقنيات Gemini.</p>", unsafe_allow_html=True)
 
-    # 🔑 إعداد الـ API بشكل مخفي في الكود (قم بوضع مفتاحك هنا)
-    MY_API_KEY = "ضع_مفتاحك_الحقيقي_هنا"
-    
-    genai.configure(api_key=MY_API_KEY)
+    # 1. محاولة جلب مفتاحك السري المخفي ليعمل الأبلكيشن تلقائياً
+    try:
+        dev_api_key = st.secrets["GEMINI_API_KEY"]
+    except Exception:
+        dev_api_key = ""
 
-    # تهيئة تاريخ المحادثة
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+    # 2. تهيئة مساحة لحفظ مفتاح المستخدم في حالة الطوارئ
+    if "user_api_key" not in st.session_state:
+        st.session_state.user_api_key = ""
 
-    # عرض المحادثات السابقة
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    # واجهة رفع الصورة (اختياري)
-    with st.expander("📷 إرفاق صورة للتحليل (اختياري)"):
-        uploaded_file = st.file_uploader("اختر صورة (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
-        if uploaded_file is not None:
-            st.image(uploaded_file, caption="الصورة المرفوعة", width=250)
-
-    # مربع المحادثة
-    if prompt := st.chat_input("اكتب سؤالك هنا... (مثال: اشرح لي نتيجتي الأخيرة)"):
+    # 3. واجهة الطوارئ (تكون مغلقة بشكل افتراضي لعدم إزعاج المستخدمين)
+    with st.expander("⚙️ الخادم مشغول؟ (أدخل مفتاحك الخاص لتجاوز الزحام)", expanded=False):
+        st.markdown("""
+        <p style='color:#CBD5E1; font-size:14px; line-height: 1.6;'>
+        هذا التطبيق يوفر شات مجاني تماماً. ولكن في حال ظهور رسالة خطأ تخبرك بأن <b>الحد اليومي المسموح به قد انتهى</b> بسبب الضغط العالي، يمكنك وضع مفتاح Gemini API الخاص بك هنا لاستكمال محادثتك فوراً من خلال حسابك الخاص. <br>
+        <a href='https://aistudio.google.com/app/apikey' target='_blank' style='color:#38BDF8;'>اضغط هنا للحصول على مفتاح مجاني في ثوانٍ.</a>
+        </p>
+        """, unsafe_allow_html=True)
         
-        # عرض رسالة المستخدم
-        with st.chat_message("user"):
-            st.markdown(prompt)
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        user_input_key = st.text_input("مفتاح API الاحتياطي (اختياري):", value=st.session_state.user_api_key, type="password")
+        if user_input_key:
+            st.session_state.user_api_key = user_input_key
+            st.success("✅ تم تفعيل مفتاحك الخاص بنجاح! يمكنك الآن استخدام الشات.")
 
-        # تجهيز السياق للموديل
-        sys_instruct = "أنت مساعد ذكي مدمج في تطبيق (Vision Analytics) لتحليل بيانات الطلاب وسلوك التطبيقات. أجب باحترافية وبطريقة تساعد المستخدم على فهم البيانات."
-        if 'last_analysis_context' in st.session_state:
-            sys_instruct += f"\n[سياق مخفي]: أحدث نتيجة تحليل قام بها المستخدم هي: {st.session_state['last_analysis_context']}"
+    # 4. اختيار المفتاح المستخدم: (لو المستخدم حط مفتاحه الخاص، هنستخدمه، لو لأ، هنستخدم مفتاحك السري)
+    active_api_key = st.session_state.user_api_key if st.session_state.user_api_key else dev_api_key
 
-        # استخدام موديل gemini-2.0-flash لتفادي مشكلة الـ Limit الخاصة بـ 2.5
-        model = genai.GenerativeModel(
-            model_name='gemini-2.0-flash',
-            system_instruction=sys_instruct
-        )
+    # التأكد من وجود مفتاح للعمل
+    if not active_api_key:
+        st.error("⚠️ لم يتم العثور على أي مفتاح API صالح. يرجى إعداد الـ Secrets أو إدخال مفتاحك الخاص ليعمل الشات.")
+        st.stop()
+    else:
+        # إعداد الاتصال بالموديل
+        genai.configure(api_key=active_api_key)
 
-        # طلب الرد
-        with st.chat_message("assistant"):
-            with st.spinner("جاري التحليل... 🧠"):
-                try:
-                    if uploaded_file is not None:
-                        img = Image.open(uploaded_file)
-                        response = model.generate_content([prompt, img])
-                    else:
-                        response = model.generate_content(prompt)
+        # تهيئة تاريخ المحادثة
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+
+        # عرض المحادثات السابقة
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+        # واجهة رفع الصورة (اختياري)
+        with st.expander("📷 إرفاق صورة للتحليل (اختياري)"):
+            uploaded_file = st.file_uploader("اختر صورة (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
+            if uploaded_file is not None:
+                st.image(uploaded_file, caption="الصورة المرفوعة", width=250)
+
+        # مربع المحادثة
+        if prompt := st.chat_input("اكتب سؤالك هنا... (مثال: اشرح لي نتيجتي الأخيرة)"):
+            
+            # عرض رسالة المستخدم
+            with st.chat_message("user"):
+                st.markdown(prompt)
+            st.session_state.messages.append({"role": "user", "content": prompt})
+
+            # تجهيز السياق للموديل
+            sys_instruct = "أنت مساعد ذكي مدمج في تطبيق (Vision Analytics) لتحليل بيانات الطلاب وسلوك التطبيقات. أجب باحترافية وبطريقة تساعد المستخدم على فهم البيانات."
+            if 'last_analysis_context' in st.session_state:
+                sys_instruct += f"\n[سياق مخفي]: أحدث نتيجة تحليل قام بها المستخدم هي: {st.session_state['last_analysis_context']}"
+
+            # استخدام موديل gemini-2.0-flash لتفادي مشكلة الـ Limit الخاصة بـ 2.5
+            model = genai.GenerativeModel(
+                model_name='gemini-2.0-flash',
+                system_instruction=sys_instruct
+            )
+
+            # طلب الرد
+            with st.chat_message("assistant"):
+                with st.spinner("جاري التحليل... 🧠"):
+                    try:
+                        if uploaded_file is not None:
+                            img = Image.open(uploaded_file)
+                            response = model.generate_content([prompt, img])
+                        else:
+                            response = model.generate_content(prompt)
+                        
+                        st.markdown(response.text)
+                        st.session_state.messages.append({"role": "assistant", "content": response.text})
                     
-                    st.markdown(response.text)
-                    st.session_state.messages.append({"role": "assistant", "content": response.text})
-                
-                except Exception as e:
-                    st.error(f"حدث خطأ أثناء معالجة الطلب. (الخطأ: {e})")
+                    except Exception as e:
+                        if "429" in str(e) or "Quota" in str(e):
+                            st.error("⚠️ يبدو أن الضغط عالٍ جداً على خوادمنا المجانية في الوقت الحالي! لضمان استمرار خدمتك، يرجى فتح القائمة العلوية ⚙️ وإدخال مفتاح API الخاص بك لتتجاوز الزحام.")
+                        else:
+                            st.error(f"حدث خطأ أثناء معالجة الطلب. (الخطأ: {e})")
