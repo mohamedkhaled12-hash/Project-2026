@@ -6,3 +6,5 @@ xgboost>=2.0.0
 plotly
 google-generativeai
 pillow
+gspread
+google-auth
