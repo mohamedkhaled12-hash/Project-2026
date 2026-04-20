@@ -13,6 +13,10 @@ warnings.filterwarnings('ignore')
 # 1. Page Config
 st.set_page_config(page_title="Vision Analytics AI", page_icon="✨", layout="wide")
 
+# تهيئة المفتاح في الـ Session State عشان مايتمسحش لما اليوزر يغير الصفحة
+if "gemini_api_key" not in st.session_state:
+    st.session_state.gemini_api_key = ""
+
 # ==========================================
 # 🎨 Premium UI/UX: Animations & Refined Glassmorphism
 # ==========================================
@@ -97,7 +101,7 @@ st.markdown("""
         transition: all 0.3s ease;
     }
     
-    /* إجبار جميع العناصر الداخلية في المربعات على اللون الغامق */
+    /* التعديل هنا: إجبار جميع العناصر الداخلية في المربعات على اللون الغامق */
     div[data-baseweb="select"] *, div[data-baseweb="base-input"] * {
         color: #0F172A !important;
     }
@@ -160,7 +164,7 @@ st.markdown("""
         letter-spacing: 0.3px;
     }
 
-    /* 6. استهداف أزرار (Form Submit) بشكل مباشر جداً */
+    /* 6. التعديل الجذري هنا: استهداف أزرار (Form Submit) بشكل مباشر جداً */
     div[data-testid="stFormSubmitButton"] > button,
     [data-testid="baseButton-secondary"] {
         background: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%) !important;
@@ -398,46 +402,38 @@ elif page == "App Behavior Analysis":
                 """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
-# Page 3: AI Assistant 🤖 (نظام الهجين الذكي - Smart Hybrid)
+# Page 3: AI Assistant 🤖 (الجديدة)
 # ------------------------------------------------------------------
 elif page == "AI Assistant 🤖":
     st.markdown("<h3 style='color: #A855F7 !important; font-weight: 700; animation: fadeInUp 0.6s ease-out forwards;'>🤖 Smart AI Assistant</h3>", unsafe_allow_html=True)
     st.markdown("<p style='color: #94A3B8 !important;'>اسألني عن النتائج، أو ارفع صورة للمخطط البياني وسأقوم بتحليله لك استناداً إلى أحدث تقنيات Gemini.</p>", unsafe_allow_html=True)
 
-    # 1. محاولة جلب مفتاحك السري المخفي ليعمل الأبلكيشن تلقائياً
-    try:
-        dev_api_key = st.secrets["GEMINI_API_KEY"]
-    except Exception:
-        dev_api_key = ""
-
-    # 2. تهيئة مساحة لحفظ مفتاح المستخدم في حالة الطوارئ
-    if "user_api_key" not in st.session_state:
-        st.session_state.user_api_key = ""
-
-    # 3. واجهة الطوارئ (تكون مغلقة بشكل افتراضي لعدم إزعاج المستخدمين)
-    with st.expander("⚙️ الخادم مشغول؟ (أدخل مفتاحك الخاص لتجاوز الزحام)", expanded=False):
+    # ==========================================
+    # 🔑 قسم إعداد الـ API Key وإرشادات المستخدم
+    # ==========================================
+    with st.expander("🔑 إعداد مفتاح الذكاء الاصطناعي (API Key) - اضغط هنا للبدء", expanded=not st.session_state.gemini_api_key):
         st.markdown("""
-        <p style='color:#CBD5E1; font-size:14px; line-height: 1.6;'>
-        هذا التطبيق يوفر شات مجاني تماماً. ولكن في حال ظهور رسالة خطأ تخبرك بأن <b>الحد اليومي المسموح به قد انتهى</b> بسبب الضغط العالي، يمكنك وضع مفتاح Gemini API الخاص بك هنا لاستكمال محادثتك فوراً من خلال حسابك الخاص. <br>
-        <a href='https://aistudio.google.com/app/apikey' target='_blank' style='color:#38BDF8;'>اضغط هنا للحصول على مفتاح مجاني في ثوانٍ.</a>
-        </p>
+        <h4 style='color:#38BDF8; margin-top:0;'>خطوات الحصول على مفتاح مجاني:</h4>
+        <ol style='color:#CBD5E1; line-height: 1.8; font-size: 15px;'>
+            <li>ادخل على منصة المطورين: <a href='https://aistudio.google.com/app/apikey' target='_blank' style='color:#A855F7; font-weight:bold;'>Google AI Studio</a> وسجل دخول بحساب جوجل الخاص بك.</li>
+            <li>اضغط على الزر الأزرق <b>Create API key</b> الموجود في الصفحة.</li>
+            <li>انسخ المفتاح الذي سيظهر لك (يبدأ بحروف <code>AIza...</code>) والصقه في المربع بالأسفل.</li>
+        </ol>
         """, unsafe_allow_html=True)
         
-        user_input_key = st.text_input("مفتاح API الاحتياطي (اختياري):", value=st.session_state.user_api_key, type="password")
-        if user_input_key:
-            st.session_state.user_api_key = user_input_key
-            st.success("✅ تم تفعيل مفتاحك الخاص بنجاح! يمكنك الآن استخدام الشات.")
+        # حقل إدخال المفتاح
+        user_api_key = st.text_input("أدخل مفتاح Gemini API الخاص بك:", value=st.session_state.gemini_api_key, type="password")
+        
+        if user_api_key:
+            st.session_state.gemini_api_key = user_api_key
+            st.success("✅ تم حفظ المفتاح بنجاح! يمكنك الآن بدء المحادثة في الأسفل.")
 
-    # 4. اختيار المفتاح المستخدم: (لو المستخدم حط مفتاحه الخاص، هنستخدمه، لو لأ، هنستخدم مفتاحك السري)
-    active_api_key = st.session_state.user_api_key if st.session_state.user_api_key else dev_api_key
-
-    # التأكد من وجود مفتاح للعمل
-    if not active_api_key:
-        st.error("⚠️ لم يتم العثور على أي مفتاح API صالح. يرجى إعداد الـ Secrets أو إدخال مفتاحك الخاص ليعمل الشات.")
-        st.stop()
+    # التأكد من وجود المفتاح قبل تشغيل الشات
+    if not st.session_state.gemini_api_key:
+        st.warning("👆 يرجى إدخال مفتاح Gemini API في المربع بالأعلى لتفعيل الشات بوت.")
     else:
         # إعداد الاتصال بالموديل
-        genai.configure(api_key=active_api_key)
+        genai.configure(api_key=st.session_state.gemini_api_key)
 
         # تهيئة تاريخ المحادثة
         if "messages" not in st.session_state:
@@ -467,7 +463,7 @@ elif page == "AI Assistant 🤖":
             if 'last_analysis_context' in st.session_state:
                 sys_instruct += f"\n[سياق مخفي]: أحدث نتيجة تحليل قام بها المستخدم هي: {st.session_state['last_analysis_context']}"
 
-            # استخدام موديل gemini-2.0-flash لتفادي مشكلة الـ Limit الخاصة بـ 2.5
+            # إعداد الموديل الصحيح بناءً على ما اكتشفناه
             model = genai.GenerativeModel(
                 model_name='gemini-2.0-flash',
                 system_instruction=sys_instruct
@@ -487,7 +483,4 @@ elif page == "AI Assistant 🤖":
                         st.session_state.messages.append({"role": "assistant", "content": response.text})
                     
                     except Exception as e:
-                        if "429" in str(e) or "Quota" in str(e):
-                            st.error("⚠️ يبدو أن الضغط عالٍ جداً على خوادمنا المجانية في الوقت الحالي! لضمان استمرار خدمتك، يرجى فتح القائمة العلوية ⚙️ وإدخال مفتاح API الخاص بك لتتجاوز الزحام.")
-                        else:
-                            st.error(f"حدث خطأ أثناء معالجة الطلب. (الخطأ: {e})")
+                        st.error(f"حدث خطأ أثناء معالجة الطلب. تأكد من صلاحية الـ API Key الخاص بك. (الخطأ: {e})")
