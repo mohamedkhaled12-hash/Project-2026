@@ -386,7 +386,7 @@ This level signals the strongest strain in your student model. The pattern is ty
 * Reduce nonessential commitments for a short period so sleep and recovery can catch up.
 * Have one honest conversation with family or a close support person about current pressure and workload.
 * تعامل مع النتيجة بوصفها إشارة دعم وتواصل مع مرشد نفسي أو أكاديمي أو عضو موثوق من هيئة التدريس مبكرًا.
-* خفف الالتزامات غير الضرورية لفترة قصيرة حتى يتمكن النوم والتعافي من اللحاق بالطالب.
+* خف خف الالتزامات غير الضرورية لفترة قصيرة حتى يتمكن النوم والتعافي من اللحاق بالطالب.
 * أجرِ محادثة صادقة واحدة مع الأسرة أو شخص داعم حول الضغط الحالي وعبء الدراسة.
             """
         }
@@ -515,16 +515,16 @@ elif page == "App Behavior Analysis":
                 # 📄 دمج تقارير السلوك التفصيلية (App Behavior Scripts)
                 # ==============================================================
                 APP_REPORTS = {
-                    1: """
+                    0: """
 **الجزء المنخفض (حوالي 0–10% شدة).**
 يمثل هذا الجزء الطرف الأكثر انضباطًا في المقياس. عادةً ما يُظهر المستخدمون هنا زمن استخدام قصيرًا، ووقت شاشة منخفضًا، واستهلاكًا خفيفًا للبطارية، وعددًا قليلًا من التطبيقات المثبتة، واستهلاكًا محدودًا للبيانات. يبدو النمط أقرب إلى “تفقد وظيفي” منه إلى تصفح متواصل. ومن ناحية الانتباه، يوجد تشتت بسيط فقط، وغالبًا يستطيع المستخدم الانفصال عن الهاتف بسهولة. وفي إطار brainrot، ما يزال هذا الجزء “نظيفًا” إلى حد كبير، لكنه يمثل النقطة التي يجب فيها حماية العادات قبل أن تصبح آلية أكثر.
 
 **الجزء المرتفع (حوالي 10–20% شدة).**
-ما يزال هذا جزءًا منخفض الخطورة، لكنه يشكل الحد الأعلى من Class 1، وغالبًا ما يُظهر تفقدًا أكثر تكرارًا، وجلسات تصفح أطول قليلًا، واعتمادًا أكبر على الهاتف أثناء الملل. المستخدم هنا لم يدخل بعد في حالة الحمل الرقمي الشديد، لكن الجهاز يبدأ في التحول إلى وسيلة افتراضية لملء الفراغ. وهذا مهم لأن التعرض المتكرر لمحفزات وسائل التواصل والاستخدام المتعدد للوسائط قد يضعفان القدرة على التركيز المستمر بمرور الوقت. هذا الجزء يستفيد من الوقاية أكثر من التصحيح: فالتغييرات الصغيرة هنا يمكن أن تمنع الانزلاق إلى الفئات الأعلى.
+ما يزال هذا جزءًا منخفض الخطورة، لكنه يشكل الحد الأعلى من Class 0، وغالبًا ما يُظهر تفقدًا أكثر تكرارًا، وجلسات تصفح أطول قليلًا، واعتمادًا أكبر على الهاتف أثناء الملل. المستخدم هنا لم يدخل بعد في حالة الحمل الرقمي الشديد، لكن الجهاز يبدأ في التحول إلى وسيلة افتراضية لملء الفراغ. وهذا مهم لأن التعرض المتكرر لمحفزات وسائل التواصل والاستخدام المتعدد للوسائط قد يضعفان القدرة على التركيز المستمر بمرور الوقت. هذا الجزء يستفيد من الوقاية أكثر من التصحيح: فالتغييرات الصغيرة هنا يمكن أن تمنع الانزلاق إلى الفئات الأعلى.
 
 **Low part (about 0–10% intensity).** This is the most controlled end of the scale. Users here usually show very short app use, low screen-on time, light battery drain, few installed apps, and relatively low data consumption. The pattern looks like functional checking rather than continuous scrolling. Attention fragmentation is present only at a mild level, and the user can usually disengage without much effort. In a brainrot framework, this segment is still mostly “clean,” but it is the point where habits should be protected before they become more automatic.
 
-**High part (about 10–20% intensity).** This is still a low-risk band, but it is the upper edge of Class 1 and often shows more frequent checking, slightly longer scrolling sessions, and more dependence on the phone during boredom. The user is not yet in heavy overload, but the device is beginning to function as a default filler. That matters because repeated social-media cues and media multitasking can quietly reduce sustained attention over time. This segment benefits from prevention, not correction: small boundary changes here can stop the slide into higher classes.
+**High part (about 10–20% intensity).** This is still a low-risk band, but it is the upper edge of Class 0 and often shows more frequent checking, slightly longer scrolling sessions, and more dependence on the phone during boredom. The user is not yet in heavy overload, but the device is beginning to function as a default filler. That matters because repeated social-media cues and media multitasking can quietly reduce sustained attention over time. This segment benefits from prevention, not correction: small boundary changes here can stop the slide into higher classes.
 
 **توصيات / Recommendations:**
 * Keep notifications limited to essential apps only, so the phone does not become a constant attention trigger.
@@ -534,16 +534,16 @@ elif page == "App Behavior Analysis":
 * استخدم حدًا يوميًا بسيطًا لزمن الشاشة، وتوقف عند الوصول إليه حتى لو كان المحتوى ما يزال سهل المتابعة.
 * استبدل التصفح العشوائي بنشاط غير متصل بالإنترنت مثل المشي أو القراءة أو الاستماع للموسيقى دون صيغة “feed”.
                     """,
-                    2: """
+                    1: """
 **الجزء المنخفض (حوالي 20–30% شدة).**
-هذا الجزء يمثل خطوة واضحة للأعلى مقارنة بـ Class 1. هنا يقضي المستخدم وقتًا أطول في الأنشطة القائمة على التطبيقات، مع زيادة في وقت الشاشة، وارتفاع في استهلاك البيانات، وعادة أكثر وضوحًا في تفقد الهاتف أثناء الانتقالات وأوقات الفراغ. ما يزال السلوك قابلًا للإدارة، لكن الانتباه لم يعد متأثرًا بشكل خفيف فقط. فالجلسات القصيرة من الفيديوهات القصيرة، والتبديل السريع بين التطبيقات، والدخول المتكرر إلى التطبيقات يمكن أن يجعل التركيز أقل استقرارًا، خصوصًا أثناء الدراسة أو العمل. ويمكن وصف هذا النمط بأنه استخدام متوسط مع بدايات الاعتماد.
+هذا الجزء يمثل خطوة واضحة للأعلى مقارنة بـ Class 0. هنا يقضي المستخدم وقتًا أطول في الأنشطة القائمة على التطبيقات، مع زيادة في وقت الشاشة، وارتفاع في استهلاك البيانات، وعادة أكثر وضوحًا في تفقد الهاتف أثناء الانتقالات وأوقات الفراغ. ما يزال السلوك قابلًا للإدارة، لكن الانتباه لم يعد متأثرًا بشكل خفيف فقط. فالجلسات القصيرة من الفيديوهات القصيرة، والتبديل السريع بين التطبيقات، والدخول المتكرر إلى التطبيقات يمكن أن يجعل التركيز أقل استقرارًا، خصوصًا أثناء الدراسة أو العمل. ويمكن وصف هذا النمط بأنه استخدام متوسط مع بدايات الاعتماد.
 
 **الجزء المرتفع (حوالي 30–40% شدة).**
-في النصف الأعلى من هذه الفئة تصبح العادة أكثر التصاقًا. تطول الجلسات، ويصبح المستخدم أكثر ميلًا للانتقال بين الخلاصات المختلفة، ويبدأ الهاتف في منافسة المهام المقصودة. وتشير البحوث حول تعدد المهام الإعلامي وإلهاء وسائل التواصل الاجتماعي إلى أن هذا النمط قد يضعف التركيز حتى عندما لا يشعر المستخدم بأنه “مدمن”. عمليًا، يعد Class 2 High النقطة التي ينبغي فيها استخدام وسائل مقاومة أقوى: حدود التطبيقات، ووضع grayscale، وفترات واعية خالية من الهاتف.
+في النصف الأعلى من هذه الفئة تصبح العادة أكثر التصاقًا. تطول الجلسات، ويصبح المستخدم أكثر ميلًا للانتقال بين الخلاصات المختلفة، ويبدأ الهاتف في منافسة المهام المقصودة. وتشير البحوث حول تعدد المهام الإعلامي وإلهاء وسائل التواصل الاجتماعي إلى أن هذا النمط قد يضعف التركيز حتى عندما لا يشعر المستخدم بأنه “مدمن”. عمليًا، يعد Class 1 High النقطة التي ينبغي فيها استخدام وسائل مقاومة أقوى: حدود التطبيقات، ووضع grayscale، وفترات واعية خالية من الهاتف.
 
-**Low part (about 20–30% intensity).** This segment is a clear step up from Class 1. Users are spending longer stretches in app-based activity, with more screen-on time, heavier data use, and a more obvious habit of checking the phone during transitions and downtime. The behavior still looks manageable, but attention is no longer only lightly affected. Short-form content, rapid switching, and repeated re-entry into apps can make focus less stable, especially during study or work blocks. The profile is best described as moderate engagement with early dependency patterns.
+**Low part (about 20–30% intensity).** This segment is a clear step up from Class 0. Users are spending longer stretches in app-based activity, with more screen-on time, heavier data use, and a more obvious habit of checking the phone during transitions and downtime. The behavior still looks manageable, but attention is no longer only lightly affected. Short-form content, rapid switching, and repeated re-entry into apps can make focus less stable, especially during study or work blocks. The profile is best described as moderate engagement with early dependency patterns.
 
-**High part (about 30–40% intensity).** This upper-half segment is where the habit starts becoming sticky. Session length grows, the user is more likely to drift from one feed to another, and the phone begins to compete with intentional tasks. Research on media multitasking and social-media distraction suggests that this pattern can weaken task focus even when the user does not feel “addicted.” In practice, Class 2 High is the point where the person should start using stronger friction: app limits, grayscale mode, and deliberate no-phone intervals.
+**High part (about 30–40% intensity).** This upper-half segment is where the habit starts becoming sticky. Session length grows, the user is more likely to drift from one feed to another, and the phone begins to compete with intentional tasks. Research on media multitasking and social-media distraction suggests that this pattern can weaken task focus even when the user does not feel “addicted.” In practice, Class 1 High is the point where the person should start using stronger friction: app limits, grayscale mode, and deliberate no-phone intervals.
 
 **توصيات / Recommendations:**
 * Put the most distracting apps in a separate folder or off the home screen to add friction before opening them.
@@ -553,15 +553,15 @@ elif page == "App Behavior Analysis":
 * اعمل في فترات تركيز مدتها 25 إلى 45 دقيقة مع إبعاد الهاتف جسديًا عن المكتب.
 * أوقف التشغيل التلقائي وخصائص التمرير اللانهائي حيثما أمكن، لأنها تزيد الاستهلاك السلبي.
                     """,
-                    3: """
+                    2: """
 **الجزء المنخفض (حوالي 40–50% شدة).**
-هذه هي منطقة الانتقال من الاستخدام المتوسط إلى الاعتماد الأقوى. المستخدمون هنا يقضون عدة ساعات يوميًا في بيئات التمرير، ولم يعد الهاتف مجرد أداة، بل أصبح بيئة نشطة. النصف الأدنى من Class 3 ما يزال يُظهر بعض السيطرة، لكن المستخدم أصبح الآن معرضًا بما يكفي من التكرار والتجديد والتبديل ليصير الحفاظ على الانتباه المستمر أصعب. وغالبًا ما تكون هذه هي الفئة التي يبدأ فيها الشخص بملاحظة: “أفتح التطبيق دون تفكير”. وهذه إشارة تحذير مهمة في سلوك brainrot.
+هذه هي منطقة الانتقال من الاستخدام المتوسط إلى الاعتماد الأقوى. المستخدمون هنا يقضون عدة ساعات يوميًا في بيئات التمرير، ولم يعد الهاتف مجرد أداة، بل أصبح بيئة نشطة. النصف الأدنى من Class 2 ما يزال يُظهر بعض السيطرة، لكن المستخدم أصبح الآن معرضًا بما يكفي من التكرار والتجديد والتبديل ليصير الحفاظ على الانتباه المستمر أصعب. وغالبًا ما تكون هذه هي الفئة التي يبدأ فيها الشخص بملاحظة: “أفتح التطبيق دون تفكير”. وهذه إشارة تحذير مهمة في سلوك brainrot.
 
 **الجزء المرتفع (حوالي 50–60% شدة).**
 يمثل هذا الجزء الحد الأعلى من النطاق المتوسط، وغالبًا ما يشير إلى بداية التعود القوي على التمرير. تطول الجلسات، ويرتفع وقت الشاشة بوضوح، ومن المرجح أن يحمل المستخدم عدة عادات تطبيقية في الوقت نفسه. وتُظهر الأبحاث الخاصة بإدمان الفيديو القصير وتعدد المهام الإعلامي أن هذه البيئات تكافئ التجديد السريع وقد تدرب الانتباه على التبديل السريع بدلًا من التركيز المستمر. هذا الجزء لم يصل بعد إلى الحد الأقصى، لكنه بات قريبًا من نقطة يصبح فيها الحمل الرقمي ظاهرًا في الإنتاجية اليومية.
 
 **Low part (about 40–50% intensity).**
-This is the transition zone from moderate use to high dependency. Users here spend several hours a day in scrolling environments, and the phone is no longer just a tool; it is an active environment. The lower half of Class 3 still shows some control, but the user is now exposed to enough repetition, novelty, and switching to make sustained attention harder. This is often the band where people begin noticing “I keep opening the app without thinking.” That is an important warning sign in brainrot-style behavior.
+This is the transition zone from moderate use to high dependency. Users here spend several hours a day in scrolling environments, and the phone is no longer just a tool; it is an active environment. The lower half of Class 2 still shows some control, but the user is now exposed to enough repetition, novelty, and switching to make sustained attention harder. This is often the band where people begin noticing “I keep opening the app without thinking.” That is an important warning sign in brainrot-style behavior.
 
 **High part (about 50–60% intensity).**
 This is the upper edge of the middle band and often marks the shift into stronger habitual scrolling. Sessions are longer, screen-on time is clearly elevated, and the user is likely carrying multiple app habits at once. Research on short-form video addiction and media multitasking is relevant here: these environments reward rapid novelty and can train attention toward fast switching rather than sustained focus. This segment is not yet extreme, but it is already close to the threshold where digital overload becomes visible in everyday productivity.
@@ -574,15 +574,15 @@ This is the upper edge of the middle band and often marks the shift into stronge
 * استخدم مراجعة أسبوعية للانتباه لتحديد التطبيقات التي تصنع أطول جلسات غير مفيدة.
 * استبدل التصفح السريع بنشاط واحد مقصود، مثل قراءة مقال واحد أو مشاهدة فيديو واحد مخطط له ثم التوقف.
                     """,
-                    4: """
+                    3: """
 **الجزء المنخفض (حوالي 60–70% شدة).**
-هذا الجزء بالفعل داخل منطقة الاستخدام الكثيف. يقضي المستخدم فترات طويلة على الهاتف، ومن المرجح أن يتضمن النمط تفقدًا متكررًا، وتبديلًا بين التطبيقات، واستهلاكًا كبيرًا للبيانات. وحتى النصف الأدنى من Class 4 يشير إلى عادة تمرير قوية جدًا. ومن منظور الانتباه، فهذا مهم لأن المستخدم لم يعد فقط معرضًا للتشتت، بل أصبح الجهاز نفسه هو المُنظم الافتراضي للملل والوقت الخالي والضغط. وهذه بيئة مهيأة بوضوح للإرهاق الرقمي.
+هذا الجزء بالفعل داخل منطقة الاستخدام الكثيف. يقضي المستخدم فترات طويلة على الهاتف، ومن المرجح أن يتضمن النمط تفقدًا متكررًا، وتبديلًا بين التطبيقات، واستهلاكًا كبيرًا للبيانات. وحتى النصف الأدنى من Class 3 يشير إلى عادة تمرير قوية جدًا. ومن منظور الانتباه، فهذا مهم لأن المستخدم لم يعد فقط معرضًا للتشتت، بل أصبح الجهاز نفسه هو المُنظم الافتراضي للملل والوقت الخالي والضغط. وهذه بيئة مهيأة بوضوح للإرهاق الرقمي.
 
 **الجزء المرتفع (حوالي 70–80% شدة).**
 هذا يمثل ملف brainrot قويًا جدًا. فالمستخدم هنا قريب من أعلى نطاق القياسات، مع وقت شاشة متواصل طويل، واستهلاك كبير للبطارية، ونظام تطبيقات واسع، واستهلاك مرتفع للبيانات. وفي هذه المرحلة لا يكون القلق متعلقًا بالتشتت فقط، بل أيضًا بالحمل المعرفي: فقد يشعر الشخص بأن ذهنه ممتلئ، ومع ذلك يواصل التمرير. وتدعم الأبحاث المتعلقة بالتشبع الرقمي والتشتت الإعلامي فكرة أن هذا النمط قد يُسطّح الانتباه، ويزيد الإرهاق، ويقلل جودة التركيز خارج الإنترنت.
 
 **Low part (about 60–70% intensity).**
-This segment is already in the heavy-use zone. The user spends long periods on the phone, and the pattern is likely to include repeated checking, app switching, and significant data use. Even the lower half of Class 4 suggests a highly trained scrolling habit. From an attention perspective, this matters because the user is no longer just exposed to distraction; the device itself is becoming a default regulator of boredom, stress, and idle time. That is a classic setup for digital fatigue.
+This segment is already in the heavy-use zone. The user spends long periods on the phone, and the pattern is likely to include repeated checking, app switching, and significant data use. Even the lower half of Class 3 suggests a highly trained scrolling habit. From an attention perspective, this matters because the user is no longer just exposed to distraction; the device itself is becoming a default regulator of boredom, stress, and idle time. That is a classic setup for digital fatigue.
 
 **High part (about 70–80% intensity).**
 This is a very strong brainrot profile. The user is close to the upper end of the telemetry scale, with long continuous screen time, high battery drain, large app ecosystems, and heavy data use. At this point, the main concern is not just distraction but cognitive overload: the person may feel mentally full yet still keep scrolling. Research on brain rot, digital overload, and media saturation supports the idea that this pattern can flatten attention, increase fatigue, and reduce the quality of offline focus.
@@ -595,15 +595,15 @@ This is a very strong brainrot profile. The user is close to the upper end of th
 * احذف تطبيقًا عالي التحفيز من الاستخدام اليومي لمدة أسبوع على الأقل لكسر الحلقات الآلية.
 * أنشئ روتينًا ثابتًا لإيقاف الهاتف ليلًا، لأن حماية النوم تصبح أساسية عندما يرتفع وقت الشاشة لهذا الحد.
                     """,
-                    5: """
+                    4: """
 **الجزء المنخفض (حوالي 80–90% شدة).**
-هذا الجزء قريب جدًا من قمة المقياس، حتى قبل الوصول إلى الحد الأعلى الكامل. المستخدمون هنا يظهرون استخدامًا طويلًا جدًا للتطبيقات، ووقت شاشة كبيرًا جدًا، واستهلاكًا كثيفًا للبطارية والبيانات. وغالبًا ما يعكس النصف الأدنى من Class 5 مشاركة شبه مستمرة في بيئات التمرير، ولكن مع قدر كافٍ من التباين ليبقى دون الذروة المطلقة. عمليًا، يتحول الهاتف هنا من أداة إلى بيئة يومية مهيمنة. وهذه هي النقطة التي يصبح فيها تراجع الانتباه والإرهاق الرقمي صعبَي التجاهل.
+هذا الجزء قريب جدًا من قمة المقياس، حتى قبل الوصول إلى الحد الأعلى الكامل. المستخدمون هنا يظهرون استخدامًا طويلًا جدًا للتطبيقات، ووقت شاشة كبيرًا جدًا، واستهلاكًا كثيفًا للبطارية والبيانات. وغالبًا ما يعكس النصف الأدنى من Class 4 مشاركة شبه مستمرة في بيئات التمرير، ولكن مع قدر كافٍ من التباين ليبقى دون الذروة المطلقة. عمليًا، يتحول الهاتف هنا من أداة إلى بيئة يومية مهيمنة. وهذه هي النقطة التي يصبح فيها تراجع الانتباه والإرهاق الرقمي صعبَي التجاهل.
 
 **الجزء المرتفع (حوالي 90–100% شدة).**
 هذا هو أقوى ملف brainrot داخل نظامك. المستخدمون في هذه القمة غالبًا يقضون فترات طويلة جدًا على الإنترنت، ويستهلكون كميات ضخمة من المحتوى القصير أو سريع التغير، ويُظهرون أقوى علامات تشتت الانتباه والإرهاق الرقمي. وتشير البحوث حول تشتيت وسائل التواصل، والحمل الإعلامي الزائد، وعادات الفيديو القصير إلى أن هذا النمط يرتبط بانخفاض التركيز المستمر وبازدياد التفقد القهري. وفي العرض التقديمي، يمكن وصف هذه المنطقة بأنها “المنطقة الحمراء” التي تحتاج إلى تعافٍ فعلي، لا إلى نصائح خفيفة فقط.
 
 **Low part (about 80–90% intensity).**
-This is already near the top of the model’s scale, even before you reach the very maximum. Users here show very long app usage, heavy screen-on time, large battery drain, and extensive data consumption. The lower half of Class 5 often reflects near-constant engagement with scrolling environments, but with just enough variability to remain below the absolute peak. In practical terms, the phone is operating as a dominant daily environment rather than a tool. That is the point where attention decline and digital burnout risk become difficult to ignore.
+This is already near the top of the model’s scale, even before you reach the very maximum. Users here show very long app usage, heavy screen-on time, large battery drain, and extensive data consumption. The lower half of Class 4 often reflects near-constant engagement with scrolling environments, but with just enough variability to remain below the absolute peak. In practical terms, the phone is operating as a dominant daily environment rather than a tool. That is the point where attention decline and digital burnout risk become difficult to ignore.
 
 **High part (about 90–100% intensity).**
 This is the most intense brainrot profile in your system. Users at the top end are likely spending very long continuous periods online, consuming large volumes of short-form or rapidly changing content, and showing the strongest signs of attention fragmentation and digital fatigue. Research on social-media distraction, media overload, and short-form video habits suggests that this pattern is closely tied to reduced sustained focus and stronger compulsive checking. In a presentation context, this is the “red zone” where the user needs active recovery, not just light advice.
