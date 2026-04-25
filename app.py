@@ -111,93 +111,40 @@ st.markdown("""
         border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
-    /* ==========================================
-       حل جذري لمربعات الإدخال والقوائم (توحيد الألوان بشكل ثابت)
-       ========================================== */
-       
-    /* 1. مربعات الإدخال الرئيسية (Selectbox & Text/Number Input) */
-    div[data-baseweb="select"] > div, 
-    div[data-baseweb="base-input"] > input {
-        background-color: rgba(15, 23, 42, 0.8) !important; /* لون داكن زجاجي */
-        color: #F8FAFC !important; /* نص أبيض ساطع */
-        -webkit-text-fill-color: #F8FAFC !important;
+    div[data-baseweb="select"] > div, div[data-baseweb="base-input"] > input {
+        background-color: #F8FAFC !important;
+        color: #0F172A !important;
         font-weight: 700 !important;
         font-size: 15px !important;
         border-radius: 10px !important;
-        border: 1px solid rgba(56, 189, 248, 0.3) !important;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        border: 2px solid transparent !important;
+        -webkit-text-fill-color: #0F172A !important;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         transition: all 0.3s ease;
     }
     
-    /* استهداف النص داخل المربع والأسهم */
-    div[data-baseweb="select"] > div *, 
-    div[data-baseweb="base-input"] > input * {
-        color: #F8FAFC !important;
-        -webkit-text-fill-color: #F8FAFC !important;
+    div[data-baseweb="select"] *, div[data-baseweb="base-input"] * {
+        color: #0F172A !important;
     }
 
-    div[data-baseweb="select"] > div:hover, 
-    div[data-baseweb="base-input"] > input:hover {
-        border: 1px solid rgba(56, 189, 248, 0.8) !important;
+    div[data-baseweb="select"] > div:hover, div[data-baseweb="base-input"] > input:hover {
+        border: 2px solid rgba(56, 189, 248, 0.5) !important;
         transform: scale(1.01);
     }
 
-    /* 2. القائمة المنسدلة المتدلية (Dropdown Popover) */
-    [data-baseweb="popover"] {
-        background-color: transparent !important; 
+    ul[data-baseweb="menu"], div[data-baseweb="popover"] {
+        background-color: #F8FAFC !important;
+        border-radius: 10px !important;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.3) !important;
     }
-    
-    [role="listbox"], 
-    ul[data-baseweb="menu"], 
-    div[data-baseweb="popover"] > div {
-        background-color: #0F172A !important; /* خلفية كحلي غامق جداً ثابتة */
-        border-radius: 12px !important;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
-        border: 1px solid rgba(56, 189, 248, 0.4) !important;
-        padding: 4px !important;
-    }
-
-    /* 3. عناصر الخيارات داخل القائمة */
-    [role="option"], 
-    ul[data-baseweb="menu"] li {
-        color: #F8FAFC !important; /* نص أبيض ثابت */
-        -webkit-text-fill-color: #F8FAFC !important;
+    ul[data-baseweb="menu"] li, ul[data-baseweb="menu"] li *, div[data-baseweb="popover"] * {
+        color: #0F172A !important;
         font-weight: 700 !important;
         font-size: 15px !important;
-        background-color: transparent !important;
-        padding: 10px 15px !important;
-        border-radius: 8px !important;
-        margin-bottom: 2px !important;
-        cursor: pointer !important;
+        -webkit-text-fill-color: #0F172A !important;
     }
+    ul[data-baseweb="menu"] li { padding: 10px 15px !important; }
 
-    [role="option"] *, 
-    ul[data-baseweb="menu"] li * {
-        color: #F8FAFC !important;
-        -webkit-text-fill-color: #F8FAFC !important;
-    }
-
-    /* 4. تأثير الوقوف بالماوس (Hover) للخيارات */
-    [role="option"]:hover, 
-    [role="option"][aria-selected="true"],
-    ul[data-baseweb="menu"] li:hover, 
-    ul[data-baseweb="menu"] li[aria-selected="true"] {
-        background-color: rgba(56, 189, 248, 0.25) !important; 
-        color: #38BDF8 !important; /* إضاءة زرقاء للنص */
-        -webkit-text-fill-color: #38BDF8 !important;
-    }
-    
-    [role="option"]:hover *, 
-    [role="option"][aria-selected="true"] *,
-    ul[data-baseweb="menu"] li:hover *, 
-    ul[data-baseweb="menu"] li[aria-selected="true"] * {
-        color: #38BDF8 !important;
-        -webkit-text-fill-color: #38BDF8 !important;
-    }
-
-    /* ========================================== */
-
-    /* أزرار التنقل */
     div[role="radiogroup"] {
         display: flex;
         flex-direction: row;
@@ -233,7 +180,6 @@ st.markdown("""
         letter-spacing: 0.3px;
     }
 
-    /* زر التحليل */
     div[data-testid="stFormSubmitButton"] > button, [data-testid="baseButton-secondary"] {
         background: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%) !important;
         border: none !important;
