@@ -4,10 +4,8 @@ import joblib
 import numpy as np
 import plotly.express as px
 import warnings
-# إضافات المساعد الذكي
 import google.generativeai as genai
 from PIL import Image
-# 📊 إضافات قاعدة البيانات
 import json
 import gspread
 from google.oauth2.service_account import Credentials
@@ -24,7 +22,6 @@ st.set_page_config(page_title="Vision Analytics AI", page_icon="✨", layout="wi
 @st.cache_resource
 def get_gspread_client():
     try:
-        # قراءة المفتاح من الـ Secrets
         creds_json = st.secrets["GOOGLE_CREDENTIALS"]
         if isinstance(creds_json, str):
             creds_dict = json.loads(creds_json)
@@ -46,14 +43,11 @@ db_client = get_gspread_client()
 def log_data(sheet_tab, row_data):
     if db_client:
         try:
-            # يفتح الشيت الرئيسي ويبحث عن الـ Tab المطلوبة (Students أو Apps)
             sheet = db_client.open("Vision_Analytics_DB").worksheet(sheet_tab)
-            # يضيف سطر جديد يحتوي على الوقت والتاريخ + البيانات
             sheet.append_row([datetime.now().strftime("%Y-%m-%d %H:%M:%S")] + row_data)
         except Exception:
-            pass  # تجاهل الأخطاء بصمت لعدم إفساد تجربة المستخدم
+            pass  
 
-# تهيئة المفتاح في الـ Session State عشان مايتمسحش لما اليوزر يغير الصفحة
 if "gemini_api_key" not in st.session_state:
     st.session_state.gemini_api_key = ""
 
@@ -62,25 +56,20 @@ if "gemini_api_key" not in st.session_state:
 # ==========================================
 st.markdown("""
 <style>
-    /* 1. الخلفية الأساسية (Deep Space) - بدون تغيير الألوان */
     .stApp {
         background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #020617 100%) !important;
         background-attachment: fixed;
     }
-
-    /* إخفاء الشريط العلوي */
     [data-testid="stHeader"] { background-color: transparent !important; }
     [data-testid="stHeader"] * { color: #F8FAFC !important; }
 
-    /* 2. الخطوط والعناوين العامة */
-    h1, h2, h3, label, p, li {
+    h1, h2, h3, h4, label, p, li {
         color: #F8FAFC !important;
         font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
         font-weight: 600 !important;
         letter-spacing: 0.2px;
     }
 
-    /* تأثير العنوان الرئيسي (Glow & Gradient) */
     .gradient-text {
         background: linear-gradient(135deg, #A855F7 0%, #38BDF8 100%);
         -webkit-background-clip: text;
@@ -90,12 +79,9 @@ st.markdown("""
         text-align: center;
         margin-top: -20px;
         letter-spacing: -1px;
-        text-shadow: 0px 4px 20px rgba(168, 85, 247, 0.3); /* توهج خلف العنوان */
+        text-shadow: 0px 4px 20px rgba(168, 85, 247, 0.3); 
     }
 
-    /* ==========================================
-       🚀 الانبهار الحركي (Animations)
-       ========================================== */
     @keyframes fadeInUp {
         0% { opacity: 0; transform: translateY(30px); }
         100% { opacity: 1; transform: translateY(0); }
@@ -107,7 +93,6 @@ st.markdown("""
         100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
     }
 
-    /* 3. الكروت الزجاجية (مع حركة الدخول وتأثير الطفو) */
     [data-testid="stForm"], .metric-card {
         background: rgba(15, 23, 42, 0.45) !important;
         backdrop-filter: blur(20px);
@@ -117,19 +102,16 @@ st.markdown("""
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
         border: 1px solid rgba(255, 255, 255, 0.08);
         transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
-        animation: fadeInUp 0.8s ease-out forwards; /* الدخول السينمائي */
+        animation: fadeInUp 0.8s ease-out forwards;
     }
     
-    /* الكارت يترفع لفوق لما تقف عليه بالماوس */
     [data-testid="stForm"]:hover, .metric-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
         border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
-    /* 4. مربعات الإدخال (نفس الألوان مع تفاعل أنعم) */
-    div[data-baseweb="select"] > div,
-    div[data-baseweb="base-input"] > input {
+    div[data-baseweb="select"] > div, div[data-baseweb="base-input"] > input {
         background-color: #F8FAFC !important;
         color: #0F172A !important;
         font-weight: 700 !important;
@@ -141,18 +123,15 @@ st.markdown("""
         transition: all 0.3s ease;
     }
     
-    /* إجبار جميع العناصر الداخلية في المربعات على اللون الغامق */
     div[data-baseweb="select"] *, div[data-baseweb="base-input"] * {
         color: #0F172A !important;
     }
 
-    div[data-baseweb="select"] > div:hover,
-    div[data-baseweb="base-input"] > input:hover {
+    div[data-baseweb="select"] > div:hover, div[data-baseweb="base-input"] > input:hover {
         border: 2px solid rgba(56, 189, 248, 0.5) !important;
-        transform: scale(1.01); /* تكبير خفيف جداً للمربع */
+        transform: scale(1.01);
     }
 
-    /* إصلاح القائمة المنسدلة بالكامل لتظهر الحروف الغامقة */
     ul[data-baseweb="menu"], div[data-baseweb="popover"] {
         background-color: #F8FAFC !important;
         border-radius: 10px !important;
@@ -164,11 +143,8 @@ st.markdown("""
         font-size: 15px !important;
         -webkit-text-fill-color: #0F172A !important;
     }
-    ul[data-baseweb="menu"] li {
-        padding: 10px 15px !important;
-    }
+    ul[data-baseweb="menu"] li { padding: 10px 15px !important; }
 
-    /* 5. أزرار التنقل (Top Tabs) */
     div[role="radiogroup"] {
         display: flex;
         flex-direction: row;
@@ -204,33 +180,28 @@ st.markdown("""
         letter-spacing: 0.3px;
     }
 
-    /* 6. استهداف أزرار (Form Submit) بشكل مباشر جداً */
-    div[data-testid="stFormSubmitButton"] > button,
-    [data-testid="baseButton-secondary"] {
+    div[data-testid="stFormSubmitButton"] > button, [data-testid="baseButton-secondary"] {
         background: linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%) !important;
         border: none !important;
         padding: 16px 24px !important;
         border-radius: 12px !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        animation: pulseGlow 2.5s infinite; /* تأثير النبض */
+        animation: pulseGlow 2.5s infinite;
     }
-    div[data-testid="stFormSubmitButton"] > button *,
-    [data-testid="baseButton-secondary"] * {
+    div[data-testid="stFormSubmitButton"] > button *, [data-testid="baseButton-secondary"] * {
         color: #0F172A !important; 
-        -webkit-text-fill-color: #0F172A !important; /* إجبار المتصفح على اللون الغامق */
+        -webkit-text-fill-color: #0F172A !important;
         font-weight: 900 !important; 
         font-size: 16px !important;
         letter-spacing: 1px;
         text-transform: uppercase;
     }
-    div[data-testid="stFormSubmitButton"] > button:hover,
-    [data-testid="baseButton-secondary"]:hover {
+    div[data-testid="stFormSubmitButton"] > button:hover, [data-testid="baseButton-secondary"]:hover {
         transform: translateY(-3px) scale(1.02);
         box-shadow: 0 15px 30px -5px rgba(59, 130, 246, 0.6) !important;
-        animation: none; /* إيقاف النبض عند وقوف الماوس */
+        animation: none;
     }
 
-    /* تنسيق القائمة القابلة للطي (Expander) للإرشادات */
     [data-testid="stExpander"] {
         background: rgba(15, 23, 42, 0.45) !important;
         backdrop-filter: blur(20px);
@@ -245,7 +216,9 @@ st.markdown("""
         font-size: 16px;
     }
     [data-testid="stExpanderDetails"] { background: transparent !important; }
-
+    
+    .script-text { line-height: 1.8; font-size: 15px; margin-bottom: 15px; }
+    .script-title { font-size: 20px; font-weight: 800; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -269,7 +242,6 @@ except Exception as e:
 st.markdown("<div class='gradient-text'>Vision Analytics</div>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #94A3B8 !important; margin-bottom: 25px; font-size: 1.1rem; animation: fadeInUp 0.4s ease-out forwards;'>Empowered by Advanced Machine Learning</p>", unsafe_allow_html=True)
 
-# ✨ إضافة الصفحة الثالثة للـ Navigation
 page = st.radio("", ["Student Risk Analysis", "App Behavior Analysis", "AI Assistant 🤖"], horizontal=True, label_visibility="collapsed")
 
 # ------------------------------------------------------------------
@@ -319,10 +291,7 @@ if page == "Student Risk Analysis":
             elif prob_dict.get('Medium', 0.0) >= 0.35: final_label = 'Medium'
             else: final_label = clean_classes[np.argmax(probs)]
 
-            # 💡 حفظ النتيجة في السياق ليستخدمها المساعد الذكي لاحقاً
             st.session_state['last_analysis_context'] = f"قام المستخدم للتو بتحليل (Student Risk Analysis). النتيجة هي: مستوى خطر {final_label}."
-            
-            # 📊 تسجيل البيانات في الخلفية
             log_data("Students", [stress, anxiety, depression, support, sleep, exams, final_label])
 
         res_col1, res_col2 = st.columns([1, 1.5])
@@ -339,109 +308,88 @@ if page == "Student Risk Analysis":
             fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#F8FAFC'), height=200, showlegend=False)
             st.plotly_chart(fig, use_container_width=True)
             st.markdown('</div>', unsafe_allow_html=True)
-            
-        # ==============================================================
-        # 📄 دمج تقارير الطالب التفصيلية (Student Risk Scripts) - Styled
-        # ==============================================================
-        RISK_REPORTS = {
-            "Low": """
-            <div dir="rtl" style="text-align: right; color: #E2E8F0; font-size: 16px; line-height: 1.8; margin-bottom: 15px;">
-                <h4 style="color: #34D399; margin-bottom: 10px;">🌟 الخطر المنخفض</h4>
-                يمثل هذا المستوى أكثر الملفات الصحية إيجابية في نموذج الطلاب لديك. النمط المعتاد هنا هو نوم أطول وأكثر انتظامًا، وقلق واكتئاب أقل، ودعم اجتماعي أقوى، واحتراق دراسي منخفض. ولا تكون الدرجات الأكاديمية بالضرورة أعلى بشكل كبير مقارنة بالمجموعات الأخرى، مما يشير إلى أن النموذج يلتقط الرفاه النفسي أكثر من التحصيل وحده. وهذه إشارة جيدة: فهي تعني أن الطالب يتكيف بدلًا من مجرد البقاء تحت الضغط. والهدف الرئيسي هنا هو المحافظة، لأن ملف الخطر المنخفض يمكن أن يتغير سريعًا إذا انهار النوم أو ضعفت شبكة الدعم أو أصبح عبء الدراسة غير منظم.
-            </div>
-            
-            <div dir="ltr" style="text-align: left; color: #94A3B8; font-size: 15px; line-height: 1.6; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 10px; border-left: 4px solid #34D399;">
-                <b>Low risk:</b> This level represents the healthiest profile in your student model. The typical pattern is longer and more regular sleep, lower anxiety and depression, stronger social support, and low burnout. Academic performance is not necessarily dramatically higher than in other groups, which suggests that the model is mainly capturing well-being rather than grades alone. This is a good sign: it means the student is coping, not simply surviving. The main goal here is maintenance, because a low-risk profile can change quickly if sleep collapses, support weakens, or workload becomes unstructured.
-            </div>
 
-            <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid rgba(52, 211, 153, 0.3);">
-                <h4 style="color: #F8FAFC; text-align: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">💡 التوصيات / Recommendations</h4>
-                <div dir="rtl" style="text-align: right; color: #CBD5E1; font-size: 15px; line-height: 1.8; margin-bottom: 15px;">
-                    <ul style="list-style-type: '✔️ ';">
-                        <li>حافظ على انتظام النوم، لأن ثبات النوم من أقوى عوامل حماية الانتباه والصحة النفسية.</li>
-                        <li>حافظ على شبكة الدعم الحالية، لأن الدعم الاجتماعي يرتبط بانخفاض الضغط الأكاديمي والإرهاق العاطفي.</li>
-                        <li>استخدم التخطيط الأسبوعي مبكرًا حتى يبقى عبء الدراسة قابلًا للإدارة قبل أن يتحول إلى احتراق.</li>
-                    </ul>
-                </div>
-                <div dir="ltr" style="text-align: left; color: #94A3B8; font-size: 14px; line-height: 1.6;">
-                    <ul style="list-style-type: '✔️ ';">
-                        <li>Keep sleep consistent, because stable sleep is one of the strongest protectors of focus and mental health.</li>
-                        <li>Preserve the support network that is already working, since social support is linked to lower academic stress and emotional exhaustion.</li>
-                        <li>Use weekly planning early, so workload stays manageable before pressure turns into burnout.</li>
-                    </ul>
-                </div>
+        # ==========================================
+        # 📝 إسكريبت تقييم الطلاب كاملاً من الورد
+        # ==========================================
+        student_scripts = {
+            'Low': """
+            <div dir="rtl" style="text-align: right;" class="script-text">
+                <div class="script-title" style="color:#34D399;">مستوى الخطر المنخفض | Low Risk Level</div>
+                <p><b>التحليل:</b><br>
+                يشير مستوى الخطر المنخفض إلى أنك تتنقل في بيئتك الأكاديمية بنجاح مع توازن عقلي وعاطفي ممتاز. من المحتمل أنك تبلغ عن أنماط نوم صحية، وعبء عمل أكاديمي يمكن إدارته، ومزاج متفائل بشكل عام. نظراً لأن مستويات التوتر والقلق لديك مستقرة، تظل وظائفك المعرفية حادة، مما يسمح بأداء أكاديمي عالٍ. أنت تستفيد بشكل كبير من أنظمة الدعم الاجتماعي القوية وآليات التكيف الصحية، مما يضمن عدم تحول الضغوط العرضية إلى احتراق. أنت تنظر إلى دراستك كتمثيل لتحدٍ إيجابي وليس كعبء ساحق. تحميك هذه الحالة المرنة بقوة ضد الاحتراق الرقمي، مما يعني أنه يمكنك استخدام التكنولوجيا للتعلم دون الوقوع في فخ التمرير اللانهائي أو استخدام وسائل التواصل الاجتماعي للهروب من الواقع الأكاديمي.</p>
+                
+                <p><b>التوصيات:</b></p>
+                <ul>
+                    <li><b>الحفاظ على عادات نوم صحية ومتسقة:</b> استمر في إعطاء الأولوية للنوم من 7 إلى 9 ساعات. الراحة عالية الجودة هي الركيزة الأساسية لنجاحك الأكاديمي الحالي وتنظيمك العاطفي الممتاز.</li>
+                    <li><b>التوجيه ودعم الأقران:</b> نظراً لأن لديك دعماً اجتماعياً قوياً، فكر في توجيه الآخرين. إن تعليم الأقران لا يعزز معرفتك فحسب، بل يعمق أيضاً روابطك الاجتماعية القيمة.</li>
+                    <li><b>إدارة الوقت الاستباقية:</b> استمر في استخدام المخططات أو التقويمات الرقمية لجدولة مهامك مسبقاً. البقاء متقدماً على المواعيد النهائية يضمن بقاء عبء العمل قابلاً للإدارة وبقاء التوتر منخفضاً بشكل ملحوظ.</li>
+                </ul>
+            </div>
+            <div dir="ltr" style="text-align: left; margin-top:20px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top:15px;" class="script-text">
+                <p>A Low Risk Level indicates that you are successfully navigating your academic environment with excellent mental and emotional balance. You likely report healthy sleep patterns, a manageable academic workload, and a generally optimistic mood. Because your stress and anxiety levels are stable, your cognitive functions remain sharp, allowing for high academic performance. You benefit greatly from strong social support systems and healthy coping mechanisms, ensuring that occasional pressures do not escalate into burnout. You view your studies as a positive challenge rather than an overwhelming burden. This resilient state strongly protects you against digital burnout, meaning you can utilize technology for learning without falling into the trap of endless scrolling or using social media to escape academic reality.</p>
+                <b>Recommendations:</b>
+                <ul>
+                    <li><b>Maintain Consistent Sleep Hygiene:</b> Continue prioritizing your 7 to 9 hours of sleep. High-quality rest is the foundational pillar of your current academic success and excellent emotional regulation.</li>
+                    <li><b>Mentorship and Peer Support:</b> Since you have strong social support, consider mentoring others. Teaching peers not only reinforces your own knowledge but also deepens your valuable social connections.</li>
+                    <li><b>Proactive Time Management:</b> Keep using planners or digital calendars to schedule your tasks in advance. Staying ahead of deadlines ensures your workload remains manageable and your stress stays remarkably low.</li>
+                </ul>
             </div>
             """,
-            "Medium": """
-            <div dir="rtl" style="text-align: right; color: #E2E8F0; font-size: 16px; line-height: 1.8; margin-bottom: 15px;">
-                <h4 style="color: #FBBF24; margin-bottom: 10px;">⚠️ الخطر المتوسط</h4>
-                هذه هي أهم مرحلة “للرصد المبكر”. الطلاب هنا غالبًا يُظهرون إشارات تحذيرية واضحة: نوم أقل، وقلق متزايد، وأعراض اكتئاب أكبر، واحتراق دراسي متوسط، ودعم أقل من فئة الخطر المنخفض. ومع ذلك، يظل الملف قابلًا للإصلاح. تكمن أهمية هذا المستوى في أن الأداء الأكاديمي قد يبدو مقبولًا رغم وجود ضغط نفسي واضح في الخلفية، ولذلك قد لا يلاحظ الطالب المشكلة مبكرًا. وإذا لم يُعالج، يمكن أن يتحول الخطر المتوسط بسرعة إلى خطر مرتفع خلال فترات الامتحانات، أو الضغط العاطفي، أو الضغوط الأسرية.
-            </div>
+            'Medium': """
+            <div dir="rtl" style="text-align: right;" class="script-text">
+                <div class="script-title" style="color:#FBBF24;">مستوى الخطر المتوسط | Medium Risk Level</div>
+                <p><b>التحليل:</b><br>
+                يشير مستوى الخطر المتوسط إلى أنك تتأرجح على حافة الإرهاق الأكاديمي. أنت تعاني من ارتفاع التوتر، والحزن العرضي، والقلق الخفيف. قد يكون نومك غير كافٍ، حيث يتقلب بين 4 إلى 6 ساعات، مما يعيق بشكل مباشر قدرة دماغك على التعافي. يتزايد الضغط الأكاديمي، مما يجعل الشعور بعبء العمل أكثر صعوبة في الإدارة. في هذه المرحلة، أنت معرض بشدة لاستخدام الوسائط الرقمية كآلية للتكيف. قد تجد نفسك تقوم بالتمرير بشكل سلبي لتجنب التفكير في الاختبارات القادمة، مبدلاً دون قصد الراحة المجددة للنشاط بالتشتت الرقمي. يخلق هذا حلقة مفرغة خطيرة حيث يؤدي ضعف النوم والاحتراق الخفيف إلى مزيد من وقت الشاشة، والذي بدوره يقلل من دافعك العام وتركيزك اليومي.</p>
 
-            <div dir="ltr" style="text-align: left; color: #94A3B8; font-size: 15px; line-height: 1.6; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 10px; border-left: 4px solid #FBBF24;">
-                <b>Medium risk:</b> This is the most important “watch closely” level. Students here usually show clear warning signs: less sleep, rising anxiety, more depression symptoms, moderate burnout, and weaker support than the low-risk group. The profile is still recoverable, but it is less resilient. Academic performance may still look acceptable, which is exactly why this level matters: the strain is visible in the background before it becomes a crisis. If unmanaged, medium risk can move quickly toward high risk during exam periods, emotional stress, or family pressure.
+                <p><b>التوصيات:</b></p>
+                <ul>
+                    <li><b>إنشاء روتين للاسترخاء:</b> استبدل الدراسة أو التمرير في وقت متأخر من الليل بروتين مهدئ قبل النوم. قراءة كتاب أو ممارسة التنفس العميق يساعد على نقل دماغك من الضغط الأكاديمي العالي إلى النوم المجدد للنشاط.</li>
+                    <li><b>تقسيم المهام إلى خطوات صغيرة:</b> تؤدي أعباء العمل المرهقة إلى سلوكيات التجنب مثل التمرير الكارثي. قم بتقسيم مهامك إلى مهام صغيرة مدتها 15 دقيقة لبناء الزخم وتقليل القلق المرتبط بالمشاريع الكبيرة.</li>
+                    <li><b>جدولة "وقت للقلق":</b> خصص 20 دقيقة يومياً تحديداً لتدوين مخاوفك الأكاديمية. احتواء توترك في نافذة زمنية محددة يمنعه من التسرب إلى وقت استرخائك ونومك.</li>
+                    <li><b>الاستفادة من موارد الحرم الجامعي:</b> لا تنتظر حتى يتم إرهاقك تماماً. شكل مجموعة دراسية أو قم بزيارة مركز الدعم الأكاديمي بجامعتك لتوزيع الضغط بشكل خفيف وتحسين شبكة الدعم الاجتماعي الخاصة بك.</li>
+                </ul>
             </div>
-
-            <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.3);">
-                <h4 style="color: #F8FAFC; text-align: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">💡 التوصيات / Recommendations</h4>
-                <div dir="rtl" style="text-align: right; color: #CBD5E1; font-size: 15px; line-height: 1.8; margin-bottom: 15px;">
-                    <ul style="list-style-type: '🎯 ';">
-                        <li>ثبّت نافذة نوم محددة واحمها باعتبارها جزءًا غير قابل للتفاوض من خطة الدراسة.</li>
-                        <li>قسّم المذاكرة إلى فترات قصيرة مع فواصل تعافٍ، لأن الفوضى الدراسية والاحتراق يزدادان عندما يكون العمل غير منظم.</li>
-                        <li>تواصل مبكرًا مع صديق أو مرشد أو أخصائي، لأن الدعم الاجتماعي يقلل الضغط والإرهاق العاطفي.</li>
-                    </ul>
-                </div>
-                <div dir="ltr" style="text-align: left; color: #94A3B8; font-size: 14px; line-height: 1.6;">
-                    <ul style="list-style-type: '🎯 ';">
-                        <li>Fix a sleep window and protect it as a non-negotiable part of the study plan.</li>
-                        <li>Break study into short timed blocks with recovery breaks, because overload and academic burnout grow when work is unstructured.</li>
-                        <li>Reach out early to a friend, advisor, or counselor, since social support reduces stress and emotional exhaustion.</li>
-                    </ul>
-                </div>
+            <div dir="ltr" style="text-align: left; margin-top:20px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top:15px;" class="script-text">
+                <p>A Medium Risk Level suggests you are balancing on the edge of academic fatigue. You are experiencing elevated stress, occasional sadness, and mild anxiety. Your sleep might be insufficient, fluctuating between 4 to 6 hours, which directly hampers your brain's ability to recover. The academic pressure is building, making your workload feel increasingly difficult to manage. At this stage, you are highly vulnerable to using digital media as a coping mechanism. You might find yourself passively scrolling to avoid thinking about upcoming exams, unintentionally trading restorative rest for digital distraction. This creates a dangerous feedback loop where poor sleep and mild burnout lead to more screen time, which in turn further decreases your overall motivation and daily focus.</p>
+                <b>Recommendations:</b>
+                <ul>
+                    <li><b>Establish a Wind-Down Routine:</b> Swap late-night studying or scrolling for a calming pre-sleep routine. Reading a book or practicing deep breathing helps transition your brain from high academic stress to restorative sleep.</li>
+                    <li><b>Break Tasks into Micro-Steps:</b> Overwhelming workloads trigger avoidance behaviors like doomscrolling. Break your assignments into tiny, 15-minute tasks to build momentum and reduce the anxiety associated with large projects.</li>
+                    <li><b>Schedule "Worry Time":</b> Allocate 20 minutes a day specifically to write down your academic anxieties. Containing your stress to a specific window prevents it from bleeding into your relaxation and sleep time.</li>
+                    <li><b>Leverage Campus Resources:</b> Don't wait until you are fully overwhelmed. Form a study group or visit your university's academic support center to lightly distribute the pressure and improve your social support network.</li>
+                </ul>
             </div>
             """,
-            "High": """
-            <div dir="rtl" style="text-align: right; color: #E2E8F0; font-size: 16px; line-height: 1.8; margin-bottom: 15px;">
-                <h4 style="color: #F43F5E; margin-bottom: 10px;">🚨 الخطر المرتفع</h4>
-                هذا المستوى يشير إلى أقوى درجات الضغط في نموذج الطلاب لديك. والنمط المعتاد هنا هو نوم قصير، وقلق مرتفع، وأعراض اكتئاب ملحوظة، واحتراق دراسي قوي، ودعم اجتماعي منخفض، وغالبًا مع ضغط أسري كبير وزيادة في خطر الانسحاب الدراسي. وقد لا تبدو النتائج الأكاديمية مختلفة كثيرًا عن المجموعات الأخرى، ما يعني أن الخطر الحقيقي مختبئ في الرفاه النفسي لا في الدرجات فقط. وفي سياق البحث أو الفحص، ينبغي التعامل مع هذه النتيجة بوصفها إشارة دعم قوية لا تشخيصًا. إنها النقطة التي يصبح فيها الدعم، والراحة، وتعديل عبء العمل أمورًا عاجلة.
-            </div>
+            'High': """
+            <div dir="rtl" style="text-align: right;" class="script-text">
+                <div class="script-title" style="color:#F43F5E;">مستوى الخطر المرتفع | High Risk Level</div>
+                <p><b>التحليل:</b><br>
+                مستوى الخطر المرتفع هو علامة تحذير حاسمة من الاحتراق الأكاديمي والرقمي الشديد. من المحتمل أنك تعاني من ضغط شديد، وحالات مزاجية منخفضة متكررة، وقلق حاد. نومك إما محروم بشدة أو مفرط كاستجابة للإرهاق. مع الضغط الأكاديمي الساحق والدعم الاجتماعي المحدود، أنت تعمل بالكامل في وضع "البقاء على قيد الحياة". في هذا المستوى، يكون احتمال الاستخدام الإشكالي لوسائل التواصل الاجتماعي مرتفعاً بشكل لا يصدق. قد تستخدم المحتوى اللانهائي للانفصال تماماً عن الضغط الشديد لحياتك اليومية. يضعف هذا الإرهاق الشديد ذاكرتك، ويسحق وظائفك التنفيذية، ويدمر أداءك الأكاديمي. دماغك مثقل بشكل كبير، ويتطلب تدخلاً فورياً ورحيماً لاستعادة رفاهيتك الجسدية والعقلية.</p>
 
-            <div dir="ltr" style="text-align: left; color: #94A3B8; font-size: 15px; line-height: 1.6; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 10px; border-left: 4px solid #F43F5E;">
-                <b>High risk:</b> This level signals the strongest strain in your student model. The pattern is typically short sleep, high anxiety, noticeable depressive symptoms, strong burnout, and low perceived support, often alongside high family expectation and increased dropout risk. Academic performance may still not look dramatically different from the other groups, which means the risk is hidden in well-being rather than grades. In a research or screening context, this should be treated as a strong alert rather than a diagnosis. It is the point where support, rest, and workload adjustment matter immediately.
+                <p><b>التوصيات:</b></p>
+                <ul>
+                    <li><b>إعطاء الأولوية للراحة فوق كل شيء:</b> النجاح الأكاديمي مستحيل دون الأداء المعرفي. يجب عليك على الفور إعطاء الأولوية للحصول على ما لا يقل عن 7 ساعات من النوم، حتى لو كان ذلك يعني طلب تمديد لمهامك الحالية.</li>
+                    <li><b>طلب الاستشارة المهنية:</b> يتطلب الاحتراق عالي المستوى تدخلاً مهنياً. تواصل مع خدمات الصحة النفسية في جامعتك على الفور لوضع خطة منظمة وواقعية لإدارة قلقك الشديد.</li>
+                    <li><b>التواصل مع الأساتذة:</b> لا تخفِ معاناتك. تواصل بصراحة حول إرهاقك مع أساتذتك أو مرشديك الأكاديميين. يميل معظم أعضاء هيئة التدريس إلى تقديم تسهيلات عندما يدركون أنك في أزمة.</li>
+                    <li><b>الانفصال الرقمي الجذري:</b> نظراً لأن الشاشات من المحتمل أن تغذي انفصالك عن الواقع، قم بتنفيذ التخلص من السموم الرقمية بصرامة. استخدم أدوات حظر مواقع الويب على الكمبيوتر المحمول الخاص بك لتقييد وصولك إلى الإنترنت بشكل صارم على البوابات الأكاديمية الأساسية فقط.</li>
+                </ul>
             </div>
-
-            <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid rgba(244, 63, 94, 0.4);">
-                <h4 style="color: #F8FAFC; text-align: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">💡 التوصيات / Recommendations</h4>
-                <div dir="rtl" style="text-align: right; color: #CBD5E1; font-size: 15px; line-height: 1.8; margin-bottom: 15px;">
-                    <ul style="list-style-type: '🛡️ ';">
-                        <li>تعامل مع النتيجة بوصفها إشارة دعم وتواصل مع مرشد نفسي أو أكاديمي أو عضو موثوق من هيئة التدريس مبكرًا.</li>
-                        <li>خفف الالتزامات غير الضرورية لفترة قصيرة حتى يتمكن النوم والتعافي من اللحاق بالطالب.</li>
-                        <li>أجرِ محادثة صادقة واحدة مع الأسرة أو شخص داعم حول الضغط الحالي وعبء الدراسة.</li>
-                    </ul>
-                </div>
-                <div dir="ltr" style="text-align: left; color: #94A3B8; font-size: 14px; line-height: 1.6;">
-                    <ul style="list-style-type: '🛡️ ';">
-                        <li>Treat the result as a support signal and contact a counselor, advisor, or trusted faculty member early.</li>
-                        <li>Reduce nonessential commitments for a short period so sleep and recovery can catch up.</li>
-                        <li>Have one honest conversation with family or a close support person about current pressure and workload.</li>
-                    </ul>
-                </div>
+            <div dir="ltr" style="text-align: left; margin-top:20px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top:15px;" class="script-text">
+                <p>A High Risk Level is a critical warning sign of severe academic and digital burnout. You are likely enduring extreme stress, frequent low moods, and severe anxiety. Your sleep is either severely deprived or excessive as an exhaustion response. With overwhelming academic pressure and limited social support, you are functioning entirely in survival mode. In this tier, the likelihood of problematic social media use is incredibly high. You may be using endless content to completely dissociate from the intense pressure of your daily life. This severe exhaustion impairs your memory, crushes your executive functioning, and ruins your academic performance. Your brain is drastically overloaded, requiring an immediate and compassionate intervention to restore your physical and mental well-being.</p>
+                <b>Recommendations:</b>
+                <ul>
+                    <li><b>Prioritize Rest Above All:</b> Academic success is impossible without cognitive functioning. You must immediately prioritize getting at least 7 hours of sleep, even if it means requesting extensions on your current assignments.</li>
+                    <li><b>Seek Professional Counseling:</b> High-level burnout requires professional intervention. Reach out to your university's mental health services immediately to develop a structured, realistic plan for managing your severe anxiety.</li>
+                    <li><b>Communicate with Professors:</b> Do not hide your struggle. Openly communicate your burnout to your professors or academic advisors. Most faculty members are willing to offer accommodations when they understand you are in crisis.</li>
+                    <li><b>Radical Digital Disconnect:</b> Since screens are likely fueling your dissociation, implement a strict digital detox. Use website blockers on your laptop to strictly limit your internet access to only essential academic portals.</li>
+                </ul>
             </div>
             """
         }
 
-        if 'High' in final_label:
-            selected_report = RISK_REPORTS["High"]
-        elif 'Medium' in final_label:
-            selected_report = RISK_REPORTS["Medium"]
-        else:
-            selected_report = RISK_REPORTS["Low"]
-
-        st.markdown('<div class="metric-card" style="margin-top:20px;">', unsafe_allow_html=True)
-        st.markdown("<h3 style='color:#E9D5FF; text-align:center; margin-bottom:20px;'>📄 Detailed Report / تقرير التحليل التفصيلي</h3>", unsafe_allow_html=True)
-        st.markdown(selected_report, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-
+        risk_key = 'High' if 'High' in final_label else 'Medium' if 'Medium' in final_label else 'Low'
+        st.markdown(f'''<div class="metric-card" style="margin-top: 25px;">{student_scripts.get(risk_key, "")}</div>''', unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
 # Page 2: App Behavior Analysis
@@ -452,7 +400,6 @@ elif page == "App Behavior Analysis":
 
     with st.expander("💡 Guide: How to find these metrics on your phone?"):
         col_android, col_ios = st.columns(2)
-        
         with col_android:
             st.markdown("<h4 style='color:#34D399; margin-bottom:5px;'>🤖 Android Devices</h4>", unsafe_allow_html=True)
             st.markdown("""
@@ -460,21 +407,17 @@ elif page == "App Behavior Analysis":
             * **Battery Drain:** Go to **Settings > Battery > Battery usage**.
             * **Data Usage:** Go to **Settings > Network & internet > Internet > App data usage**.
             """)
-            
         with col_ios:
             st.markdown("<h4 style='color:#F87171; margin-bottom:5px;'>🍏 iOS (iPhone)</h4>", unsafe_allow_html=True)
             st.markdown("""
             * **Screen On Time & Usage Time:** Go to **Settings > Screen Time > See All Activity**.
             * **Battery Drain:** Go to **Settings > Battery**.
-            * **Data Usage:** Go to **Settings > Cellular** (scroll down to Cellular Data).
+            * **Data Usage:** Go to **Settings > Cellular**.
             """)
-            
         st.markdown("<hr style='border-color: rgba(255,255,255,0.1); margin: 15px 0;'>", unsafe_allow_html=True)
         st.markdown("<h4 style='color:#A855F7; margin-bottom:5px;'>🔋 How to calculate Battery Drain (mAh)?</h4>", unsafe_allow_html=True)
         st.markdown("""
-        Most phones display battery usage as a percentage (e.g., 50%). To convert this into **mAh** for the model, use this simple formula:
-        > **` (Percentage Used ÷ 100) × Total Battery Capacity (mAh) `**
-        
+        > **` (Percentage Used ÷ 100) × Total Battery Capacity (mAh) `**<br>
         *Example:* If you used 40% of a 5000 mAh battery: `(40 ÷ 100) × 5000 = 2000 mAh`.
         """, unsafe_allow_html=True)
 
@@ -504,18 +447,15 @@ elif page == "App Behavior Analysis":
                 'Age': [float(age)],
                 'Gender': [gender]
             }
-            
             df_app = pd.DataFrame(raw_data)
             
             if hasattr(app_model, 'feature_names_in_'):
                 expected_cols = list(app_model.feature_names_in_)
-                
                 if 'Gender_Male' in expected_cols:
                     df_app['Gender_Male'] = 1.0 if gender == "Male" else 0.0
                     df_app['Gender_Female'] = 1.0 if gender == "Female" else 0.0
                     if 'Gender' in df_app.columns:
                         df_app = df_app.drop(columns=['Gender'])
-                
                 df_app = df_app.reindex(columns=expected_cols, fill_value=0.0)
 
             try:
@@ -529,18 +469,10 @@ elif page == "App Behavior Analysis":
                     success = True
                 except Exception as e2:
                     success = False
-                    st.error("⚠️ الموديل رافض شكل البيانات! دي رسالة الخطأ:")
-                    st.code(str(e2))
-                    
-                    if hasattr(app_model, 'feature_names_in_'):
-                        st.warning("🔍 الموديل متدرب ومستني الأعمدة دي بالظبط (انسخها عشان نعرف المشكلة):")
-                        st.write(list(app_model.feature_names_in_))
+                    st.error(f"⚠️ خطأ في توافق البيانات: {e2}")
             
             if success:
-                # 💡 حفظ النتيجة في السياق ليستخدمها المساعد الذكي لاحقاً
                 st.session_state['last_analysis_context'] = f"قام المستخدم للتو بتحليل (App Behavior Analysis). النتيجة هي: المستخدم ينتمي للفئة (Class {int(pred)})."
-                
-                # 📊 تسجيل البيانات في الخلفية
                 log_data("Apps", [age, gender, num_apps, screen_time, battery, data_usage, app_usage, int(pred)])
 
                 st.markdown(f"""
@@ -549,199 +481,193 @@ elif page == "App Behavior Analysis":
                         <h1 style='color:#22D3EE !important; font-size:3.5rem; font-weight:900;'>{int(pred)}</h1>
                     </div>
                 """, unsafe_allow_html=True)
-                
-                # ==============================================================
-                # 📄 دمج تقارير السلوك التفصيلية (App Behavior Scripts) - Styled
-                # ==============================================================
-                APP_REPORTS = {
+
+                # ==========================================
+                # 📝 إسكريبت تقييم التطبيقات كاملاً (مُصنف لـ 0,1,2,3,4)
+                # ==========================================
+                app_scripts = {
                     0: """
-                    <div dir="rtl" style="text-align: right; color: #E2E8F0; font-size: 15px; line-height: 1.8; margin-bottom: 15px;">
-                        <h4 style="color: #34D399; margin-bottom: 5px;">🔹 الجزء المنخفض (حوالي 0–10% شدة)</h4>
-                        يمثل هذا الجزء الطرف الأكثر انضباطًا في المقياس. عادةً ما يُظهر المستخدمون هنا زمن استخدام قصيرًا، ووقت شاشة منخفضًا، واستهلاكًا خفيفًا للبطارية، وعددًا قليلًا من التطبيقات المثبتة، واستهلاكًا محدودًا للبيانات. يبدو النمط أقرب إلى “تفقد وظيفي” منه إلى تصفح متواصل. ومن ناحية الانتباه، يوجد تشتت بسيط فقط، وغالبًا يستطيع المستخدم الانفصال عن الهاتف بسهولة. وفي إطار brainrot، ما يزال هذا الجزء “نظيفًا” إلى حد كبير، لكنه يمثل النقطة التي يجب فيها حماية العادات قبل أن تصبح آلية أكثر.
+                    <div dir="rtl" style="text-align: right;" class="script-text">
+                        <div class="script-title" style="color:#34D399;">الفئة (النتيجة 0): توافق Class 1 (الخطر الأدنى - Minimal Risk)</div>
+                        <p><b>الجزء المنخفض (المنفعة الوظيفية):</b><br>
+                        في هذا الجزء، تُظهر علاقة واعية ومقصودة جداً مع جهازك، حيث تستخدمه بشكل أساسي للتواصل الضروري، والتعلم، والأدوات المهمة. تكاد تكون "نسبة تعفن الدماغ" (Brainrot Percentage) معدومة (0% - 5%). وقت استخدامك للتطبيقات منخفض، واستهلاك البطارية يعكس تفاعلاً ضئيلاً. أنت تنظر إلى التكنولوجيا كمساعد مفيد وليس كفخ. ولأن مسارات الدوبامين لديك لا يتم التلاعب بها، فإن مدى انتباهك يظل حاداً، ولا يوجد إرهاق رقمي. يمثل هذا المعيار الذهبي للرفاهية الرقمية.</p>
+
+                        <p><b>الجزء المرتفع (الترفيه العرضي):</b><br>
+                        لا تزال تحتفظ بسيطرة ممتازة، لكنك تنغمس أحياناً في فترات قصيرة من الترفيه الرقمي (نسبة تعفن الدماغ 6% - 15%). نادراً ما تفقد الإحساس بالوقت، مما يوضح أنه يمكنك الاستمتاع بأمان بالعالم الرقمي دون التدخل في مسؤولياتك. وظائفك الإدراكية والتنظيم العاطفي تظل سليمة تماماً.</p>
+
+                        <p><b>التوصيات:</b></p>
+                        <ul>
+                            <li><b>الحفاظ على مناطق خالية من التكنولوجيا:</b> اجعل غرفة نومك خالية تماماً من الشاشات لحماية جودة نومك العالية وتجنب التمرير الليلي.</li>
+                            <li><b>فحص الجهاز المجدول:</b> استمر في التحقق من تطبيقاتك في أوقات محددة بدلاً من الاستجابة لكل إشعار للحفاظ على تركيزك الممتاز.</li>
+                            <li><b>تبني الهوايات التناظرية:</b> خصص وقتاً لقراءة الكتب الورقية أو ممارسة الرياضات الخارجية لتعزيز مدى انتباهك القوي.</li>
+                        </ul>
+                    </div>
+                    <div dir="ltr" style="text-align: left; margin-top:20px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top:15px;" class="script-text">
+                        <p><b>Low Part (Functional Utility):</b><br>
+                        You exhibit a highly intentional relationship with your device, utilizing it for essential communication, learning, and necessary tools. Brainrot Percentage is non-existent (0%-5%). Your app usage and battery drain reflect minimal engagement with algorithms. You view technology as a helpful assistant. Dopamine pathways aren't hijacked, attention remains sharp, and digital fatigue is absent. This is the gold standard of digital well-being.</p>
                         
-                        <h4 style="color: #34D399; margin-top: 15px; margin-bottom: 5px;">🔸 الجزء المرتفع (حوالي 10–20% شدة)</h4>
-                        ما يزال هذا جزءًا منخفض الخطورة، لكنه يشكل الحد الأعلى من Class 0، وغالبًا ما يُظهر تفقدًا أكثر تكرارًا، وجلسات تصفح أطول قليلًا، واعتمادًا أكبر على الهاتف أثناء الملل. المستخدم هنا لم يدخل بعد في حالة الحمل الرقمي الشديد، لكن الجهاز يبدأ في التحول إلى وسيلة افتراضية لملء الفراغ. وهذا مهم لأن التعرض المتكرر لمحفزات وسائل التواصل والاستخدام المتعدد للوسائط قد يضعفان القدرة على التركيز المستمر بمرور الوقت. هذا الجزء يستفيد من الوقاية أكثر من التصحيح: فالتغييرات الصغيرة هنا يمكن أن تمنع الانزلاق إلى الفئات الأعلى.
-                    </div>
+                        <p><b>High Part (Casual Entertainment):</b><br>
+                        You maintain excellent control, indulging occasionally in short bursts of digital entertainment (6%-15%). You rarely lose track of time, safely enjoying the digital world without interfering with responsibilities. Cognitive functions and emotional regulation remain completely intact.</p>
 
-                    <div dir="ltr" style="text-align: left; color: #94A3B8; font-size: 14px; line-height: 1.6; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 10px; border-left: 4px solid #34D399;">
-                        <b>Low part (about 0–10% intensity):</b> This is the most controlled end of the scale. Users here usually show very short app use, low screen-on time, light battery drain, few installed apps, and relatively low data consumption. The pattern looks like functional checking rather than continuous scrolling. Attention fragmentation is present only at a mild level, and the user can usually disengage without much effort. In a brainrot framework, this segment is still mostly “clean,” but it is the point where habits should be protected before they become more automatic.<br><br>
-                        <b>High part (about 10–20% intensity):</b> This is still a low-risk band, but it is the upper edge of Class 0 and often shows more frequent checking, slightly longer scrolling sessions, and more dependence on the phone during boredom. The user is not yet in heavy overload, but the device is beginning to function as a default filler. That matters because repeated social-media cues and media multitasking can quietly reduce sustained attention over time. This segment benefits from prevention, not correction: small boundary changes here can stop the slide into higher classes.
-                    </div>
-
-                    <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid rgba(52, 211, 153, 0.3);">
-                        <h4 style="color: #F8FAFC; text-align: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">💡 التوصيات / Recommendations</h4>
-                        <div dir="rtl" style="text-align: right; color: #CBD5E1; font-size: 15px; line-height: 1.8; margin-bottom: 15px;">
-                            <ul style="list-style-type: '✔️ ';">
-                                <li>اجعل الإشعارات مقتصرة على التطبيقات الأساسية فقط، حتى لا يصبح الهاتف محفزًا دائمًا للانتباه.</li>
-                                <li>استخدم حدًا يوميًا بسيطًا لزمن الشاشة، وتوقف عند الوصول إليه حتى لو كان المحتوى ما يزال سهل المتابعة.</li>
-                                <li>استبدل التصفح العشوائي بنشاط غير متصل بالإنترنت مثل المشي أو القراءة أو الاستماع للموسيقى دون صيغة “feed”.</li>
-                            </ul>
-                        </div>
-                        <div dir="ltr" style="text-align: left; color: #94A3B8; font-size: 14px; line-height: 1.6;">
-                            <ul style="list-style-type: '✔️ ';">
-                                <li>Keep notifications limited to essential apps only, so the phone does not become a constant attention trigger.</li>
-                                <li>Use a simple daily screen-time ceiling and stop the session when it is reached, even if the content still feels easy to continue.</li>
-                                <li>Replace idle scrolling with a short offline habit such as walking, reading, or music without the feed format.</li>
-                            </ul>
-                        </div>
+                        <p><b>Recommendations:</b></p>
+                        <ul>
+                            <li><b>Maintain Tech-Free Zones:</b> Keep your bedroom screen-free to protect sleep.</li>
+                            <li><b>Scheduled Device Checks:</b> Check apps at designated times rather than responding to every notification.</li>
+                            <li><b>Embrace Analog Hobbies:</b> Dedicate time to reading physical books or outdoor sports.</li>
+                        </ul>
                     </div>
                     """,
                     1: """
-                    <div dir="rtl" style="text-align: right; color: #E2E8F0; font-size: 15px; line-height: 1.8; margin-bottom: 15px;">
-                        <h4 style="color: #60A5FA; margin-bottom: 5px;">🔹 الجزء المنخفض (حوالي 20–30% شدة)</h4>
-                        هذا الجزء يمثل خطوة واضحة للأعلى مقارنة بـ Class 0. هنا يقضي المستخدم وقتًا أطول في الأنشطة القائمة على التطبيقات، مع زيادة في وقت الشاشة، وارتفاع في استهلاك البيانات، وعادة أكثر وضوحًا في تفقد الهاتف أثناء الانتقالات وأوقات الفراغ. ما يزال السلوك قابلًا للإدارة، لكن الانتباه لم يعد متأثرًا بشكل خفيف فقط. فالجلسات القصيرة من الفيديوهات القصيرة، والتبديل السريع بين التطبيقات، والدخول المتكرر إلى التطبيقات يمكن أن يجعل التركيز أقل استقرارًا، خصوصًا أثناء الدراسة أو العمل. ويمكن وصف هذا النمط بأنه استخدام متوسط مع بدايات الاعتماد.
+                    <div dir="rtl" style="text-align: right;" class="script-text">
+                        <div class="script-title" style="color:#6EE7B7;">الفئة (النتيجة 1): توافق Class 2 (عادة ناشئة - Emerging Habit)</div>
+                        <p><b>الجزء المنخفض (وقت الفراغ السلبي):</b><br>
+                        تعكس عاداتك الرقمية وقت فراغ سلبي وعرضي (نسبة تعفن الدماغ 16% - 25%). تستخدم التطبيقات بشكل متكرر للاسترخاء بعد يوم طويل، وتسمح للخوارزميات بتوجيهك لفترات قصيرة. وقت الشاشة واستخدام البيانات مرتفعان بشكل معتدل. قد تلاحظ أحياناً ممانعة طفيفة لترك الهاتف. إنها مرحلة انتقالية تتشكل فيها العادات الرقمية، لكنها لم تتسبب بعد في تشتت ملحوظ.</p>
+
+                        <p><b>الجزء المرتفع (التمرير المشتت):</b><br>
+                        تظهر العلامات الحقيقية الأولى للتشتت الرقمي (26% - 35%). تظهر زيادة في استهلاك البطارية والتبديل المتكرر بين التطبيقات. غالباً ما تلتقط هاتفك لسبب معين، لتجد نفسك تقوم بالتمرير بلا هدف. بدأت الخوارزميات في التقاط انتباهك. قد تعاني من إرهاق عقلي خفيف، والدماغ يكيف نفسه ببطء لاشتهاء جرعات متكررة من الدوبامين.</p>
+
+                        <p><b>التوصيات:</b></p>
+                        <ul>
+                            <li><b>قاعدة الـ 30 دقيقة:</b> قصر جلسات التمرير على 30 دقيقة يومياً. تظهر الدراسات أن تقييد وسائل التواصل يحسن الحالة المزاجية بشكل كبير ويقلل من القلق.</li>
+                            <li><b>إيقاف الإشعارات غير الضرورية:</b> قم بتعطيل التنبيهات لتطبيقات التواصل الاجتماعي لاستعادة السيطرة على انتباهك.</li>
+                            <li><b>الاستخدام المقصود للتطبيقات:</b> قبل فتح أي تطبيق، اذكر بصوت عالٍ الغرض من ذلك. إذا لم تتمكن من التحديد، فضع الهاتف جانباً لكسر التحقق الطائش.</li>
+                        </ul>
+                    </div>
+                    <div dir="ltr" style="text-align: left; margin-top:20px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top:15px;" class="script-text">
+                        <p><b>Low Part (Passive Leisure):</b><br>
+                        Digital habits reflect casual, passive leisure (Brainrot 16%-25%). You frequently use apps for relaxation, letting algorithms guide you. Screen time is moderately elevated. Your brain receives constant low-level stimulation. It's a transitional phase forming digital habits without severe disruption yet.</p>
                         
-                        <h4 style="color: #60A5FA; margin-top: 15px; margin-bottom: 5px;">🔸 الجزء المرتفع (حوالي 30–40% شدة)</h4>
-                        في النصف الأعلى من هذه الفئة تصبح العادة أكثر التصاقًا. تطول الجلسات، ويصبح المستخدم أكثر ميلًا للانتقال بين الخلاصات المختلفة، ويبدأ الهاتف في منافسة المهام المقصودة. وتشير البحوث حول تعدد المهام الإعلامي وإلهاء وسائل التواصل الاجتماعي إلى أن هذا النمط قد يضعف التركيز حتى عندما لا يشعر المستخدم بأنه “مدمن”. عمليًا، يعد Class 1 High النقطة التي ينبغي فيها استخدام وسائل مقاومة أقوى: حدود التطبيقات، ووضع grayscale، وفترات واعية خالية من الهاتف.
-                    </div>
+                        <p><b>High Part (Distracted Scrolling):</b><br>
+                        First real signs of digital distraction (26%-35%). Increased battery drain and frequent app switching. You often scroll aimlessly. Social media algorithms are successfully holding your attention. Mild mental fatigue occurs as constant novelty conditions your brain for dopamine hits.</p>
 
-                    <div dir="ltr" style="text-align: left; color: #94A3B8; font-size: 14px; line-height: 1.6; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 10px; border-left: 4px solid #60A5FA;">
-                        <b>Low part (about 20–30% intensity):</b> This segment is a clear step up from Class 0. Users are spending longer stretches in app-based activity, with more screen-on time, heavier data use, and a more obvious habit of checking the phone during transitions and downtime. The behavior still looks manageable, but attention is no longer only lightly affected. Short-form content, rapid switching, and repeated re-entry into apps can make focus less stable, especially during study or work blocks. The profile is best described as moderate engagement with early dependency patterns.<br><br>
-                        <b>High part (about 30–40% intensity):</b> This upper-half segment is where the habit starts becoming sticky. Session length grows, the user is more likely to drift from one feed to another, and the phone begins to compete with intentional tasks. Research on media multitasking and social-media distraction suggests that this pattern can weaken task focus even when the user does not feel “addicted.” In practice, Class 1 High is the point where the person should start using stronger friction: app limits, grayscale mode, and deliberate no-phone intervals.
-                    </div>
-
-                    <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid rgba(96, 165, 250, 0.3);">
-                        <h4 style="color: #F8FAFC; text-align: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">💡 التوصيات / Recommendations</h4>
-                        <div dir="rtl" style="text-align: right; color: #CBD5E1; font-size: 15px; line-height: 1.8; margin-bottom: 15px;">
-                            <ul style="list-style-type: '📌 ';">
-                                <li>ضع التطبيقات الأكثر إلهاءً داخل مجلد منفصل أو بعيدًا عن الشاشة الرئيسية لإضافة مقاومة قبل فتحها.</li>
-                                <li>اعمل في فترات تركيز مدتها 25 إلى 45 دقيقة مع إبعاد الهاتف جسديًا عن المكتب.</li>
-                                <li>أوقف التشغيل التلقائي وخصائص التمرير اللانهائي حيثما أمكن، لأنها تزيد الاستهلاك السلبي.</li>
-                            </ul>
-                        </div>
-                        <div dir="ltr" style="text-align: left; color: #94A3B8; font-size: 14px; line-height: 1.6;">
-                            <ul style="list-style-type: '📌 ';">
-                                <li>Put the most distracting apps in a separate folder or off the home screen to add friction before opening them.</li>
-                                <li>Work in 25- to 45-minute focus blocks with the phone physically away from the desk.</li>
-                                <li>Turn off autoplay and infinite-scroll features where possible, because those design choices intensify passive consumption.</li>
-                            </ul>
-                        </div>
+                        <p><b>Recommendations:</b></p>
+                        <ul>
+                            <li><b>The 30-Minute Rule:</b> Limit scrolling sessions to 30 minutes daily to improve mood.</li>
+                            <li><b>Turn Off Non-Essential Notifications:</b> Disable push alerts for social apps to regain attention control.</li>
+                            <li><b>Intentional App Usage:</b> Before opening an app, verbally state your purpose. If you cannot, put the phone down.</li>
+                        </ul>
                     </div>
                     """,
                     2: """
-                    <div dir="rtl" style="text-align: right; color: #E2E8F0; font-size: 15px; line-height: 1.8; margin-bottom: 15px;">
-                        <h4 style="color: #FBBF24; margin-bottom: 5px;">🔹 الجزء المنخفض (حوالي 40–50% شدة)</h4>
-                        هذه هي منطقة الانتقال من الاستخدام المتوسط إلى الاعتماد الأقوى. المستخدمون هنا يقضون عدة ساعات يوميًا في بيئات التمرير، ولم يعد الهاتف مجرد أداة، بل أصبح بيئة نشطة. النصف الأدنى من Class 2 ما يزال يُظهر بعض السيطرة، لكن المستخدم أصبح الآن معرضًا بما يكفي من التكرار والتجديد والتبديل ليصير الحفاظ على الانتباه المستمر أصعب. وغالبًا ما تكون هذه هي الفئة التي يبدأ فيها الشخص بملاحظة: “أفتح التطبيق دون تفكير”. وهذه إشارة تحذير مهمة في سلوك brainrot.
-                        
-                        <h4 style="color: #FBBF24; margin-top: 15px; margin-bottom: 5px;">🔸 الجزء المرتفع (حوالي 50–60% شدة)</h4>
-                        يمثل هذا الجزء الحد الأعلى من النطاق المتوسط، وغالبًا ما يشير إلى بداية التعود القوي على التمرير. تطول الجلسات، ويرتفع وقت الشاشة بوضوح، ومن المرجح أن يحمل المستخدم عدة عادات تطبيقية في الوقت نفسه. وتُظهر الأبحاث الخاصة بإدمان الفيديو القصير وتعدد المهام الإعلامي أن هذه البيئات تكافئ التجديد السريع وقد تدرب الانتباه على التبديل السريع بدلًا من التركيز المستمر. هذا الجزء لم يصل بعد إلى الحد الأقصى، لكنه بات قريبًا من نقطة يصبح فيها الحمل الرقمي ظاهرًا في الإنتاجية اليومية.
-                    </div>
+                    <div dir="rtl" style="text-align: right;" class="script-text">
+                        <div class="script-title" style="color:#FBBF24;">الفئة (النتيجة 2): توافق Class 3 (خطر متوسط - Moderate Risk)</div>
+                        <p><b>الجزء المنخفض (الاستهلاك الروتيني):</b><br>
+                        يتحول تفاعلك الرقمي إلى استهلاك روتيني (36% - 45%). وقت الشاشة مرتفع، وأصبح التمرير اللانهائي عادة يومية. تعتمد على المحتوى السريع لتهدئة نفسك. دماغك في حالة تأهب دائم مما يمنع التعافي. المهام الأطول (كالدراسة أو القراءة) تبدو محبطة ومملة بشكل غير عادي. بداية مرحلة "تشتت الانتباه".</p>
 
-                    <div dir="ltr" style="text-align: left; color: #94A3B8; font-size: 14px; line-height: 1.6; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 10px; border-left: 4px solid #FBBF24;">
-                        <b>Low part (about 40–50% intensity):</b> This is the transition zone from moderate use to high dependency. Users here spend several hours a day in scrolling environments, and the phone is no longer just a tool; it is an active environment. The lower half of Class 2 still shows some control, but the user is now exposed to enough repetition, novelty, and switching to make sustained attention harder. This is often the band where people begin noticing “I keep opening the app without thinking.” That is an important warning sign in brainrot-style behavior.<br><br>
-                        <b>High part (about 50–60% intensity):</b> This is the upper edge of the middle band and often marks the shift into stronger habitual scrolling. Sessions are longer, screen-on time is clearly elevated, and the user is likely carrying multiple app habits at once. Research on short-form video addiction and media multitasking is relevant here: these environments reward rapid novelty and can train attention toward fast switching rather than sustained focus. This segment is not yet extreme, but it is already close to the threshold where digital overload becomes visible in everyday productivity.
-                    </div>
+                        <p><b>الجزء المرتفع (تشتت الانتباه):</b><br>
+                        العبء الرقمي الزائد يصبح واضحاً (46% - 60%). انجذاب قوي نحو "التمرير الكارثي" (Doomscrolling). مهام متعددة وانتقال سريع بين المنصات. أنت تعاني من "الضباب العقلي" (Brainrot). المعلومات المجزأة تثقل الذاكرة العاملة وتقلل التفكير النقدي. انخفض مدى الانتباه بشكل واضح، مما يجعل العمل المركز صراعاً.</p>
 
-                    <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.3);">
-                        <h4 style="color: #F8FAFC; text-align: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">💡 التوصيات / Recommendations</h4>
-                        <div dir="rtl" style="text-align: right; color: #CBD5E1; font-size: 15px; line-height: 1.8; margin-bottom: 15px;">
-                            <ul style="list-style-type: '⚡ ';">
-                                <li>اجعل هناك فترتين يوميتين ثابتتين لا يُستخدم فيهما الهاتف، خصوصًا قبل الدراسة وقبل النوم.</li>
-                                <li>استخدم مراجعة أسبوعية للانتباه لتحديد التطبيقات التي تصنع أطول جلسات غير مفيدة.</li>
-                                <li>استبدل التصفح السريع بنشاط واحد مقصود، مثل قراءة مقال واحد أو مشاهدة فيديو واحد مخطط له ثم التوقف.</li>
-                            </ul>
-                        </div>
-                        <div dir="ltr" style="text-align: left; color: #94A3B8; font-size: 14px; line-height: 1.6;">
-                            <ul style="list-style-type: '⚡ ';">
-                                <li>Set two non-negotiable phone-free periods each day, especially before study and before sleep.</li>
-                                <li>Use a weekly “attention audit” to identify which apps create the longest and least useful sessions.</li>
-                                <li>Replace quick-feed browsing with a single-purpose activity, such as reading one article or watching one planned video, then stop.</li>
-                            </ul>
-                        </div>
+                        <p><b>التوصيات:</b></p>
+                        <ul>
+                            <li><b>تنفيذ 'فترات راحة للتمرير':</b> قم بجدولة فترات راحة 10 دقائق أثناء الدراسة ثم العودة فوراً للعمل.</li>
+                            <li><b>تنظيم المحتوى الخاص بك:</b> إلغاء متابعة الحسابات الطائشة واستبدالها بصناع محتوى تعليميين ومفيدين.</li>
+                            <li><b>ممارسة تقنية بومودورو:</b> 25 دقيقة تركيز تليها 5 دقائق استراحة بدون تكنولوجيا.</li>
+                            <li><b>التخلص من السموم الرقمية الصباحية:</b> تجنب الهاتف في الساعة الأولى بعد الاستيقاظ لمنع ارتفاع الدوبامين الفوري.</li>
+                        </ul>
+                    </div>
+                    <div dir="ltr" style="text-align: left; margin-top:20px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top:15px;" class="script-text">
+                        <p><b>Low Part (Routine Consumption):</b><br>
+                        Engagement shifts to routine consumption (Brainrot 36%-45%). Endless scrolling is a daily habit. You rely on fast-paced content to self-soothe. Your brain is kept alert, preventing mental recovery. Longer tasks feel unusually frustrating or boring. This marks the beginning of "attention fragmentation."</p>
+
+                        <p><b>High Part (Attention Fragmentation):</b><br>
+                        Digital overload becomes apparent (46%-60%). Strong pull toward doomscrolling. Frequent multitasking across platforms causes "mental fog" (brain rot). Bite-sized information overloads working memory, decreasing critical thinking. Sustained attention has visibly declined.</p>
+
+                        <p><b>Recommendations:</b></p>
+                        <ul>
+                            <li><b>Implement 'Scroll Breaks':</b> Schedule 10-minute scroll breaks, then return to task immediately.</li>
+                            <li><b>Curate Your Feeds:</b> Unfollow mindless entertainment and replace with educational creators.</li>
+                            <li><b>Practice the Pomodoro Technique:</b> 25-minute work intervals followed by a 5-minute tech-free break.</li>
+                            <li><b>Morning Digital Detox:</b> Avoid your phone for the first hour after waking up.</li>
+                        </ul>
                     </div>
                     """,
                     3: """
-                    <div dir="rtl" style="text-align: right; color: #E2E8F0; font-size: 15px; line-height: 1.8; margin-bottom: 15px;">
-                        <h4 style="color: #F97316; margin-bottom: 5px;">🔹 الجزء المنخفض (حوالي 60–70% شدة)</h4>
-                        هذا الجزء بالفعل داخل منطقة الاستخدام الكثيف. يقضي المستخدم فترات طويلة على الهاتف، ومن المرجح أن يتضمن النمط تفقدًا متكررًا، وتبديلًا بين التطبيقات، واستهلاكًا كبيرًا للبيانات. وحتى النصف الأدنى من Class 3 يشير إلى عادة تمرير قوية جدًا. ومن منظور الانتباه، فهذا مهم لأن المستخدم لم يعد فقط معرضًا للتشتت، بل أصبح الجهاز نفسه هو المُنظم الافتراضي للملل والوقت الخالي والضغط. وهذه بيئة مهيأة بوضوح للإرهاق الرقمي.
+                    <div dir="rtl" style="text-align: right;" class="script-text">
+                        <div class="script-title" style="color:#F87171;">الفئة (النتيجة 3): توافق Class 4 (خطر مرتفع - High Risk)</div>
+                        <p><b>الجزء المنخفض (التمرير الكارثي القهري):</b><br>
+                        تحول من العادة إلى السلوك القهري (61% - 75%). وقت شاشة طويل جداً واستنزاف كبير للبطارية ليلاً. أنت تقوم بالتمرير لأنك مضطر لذلك. يؤثر هذا بشدة على جودة نومك (تأخير الميلاتونين وتشتت النوم العميق). الضجيج الرقمي يؤدي إلى تآكل التنظيم العاطفي وزيادة التوتر.</p>
+
+                        <p><b>الجزء المرتفع (الإرهاق المعرفي):</b><br>
+                        إرهاق معرفي شديد (76% - 85%). استهلاك هائل للبيانات واعتماد شبه كلي على التحفيز. المحتوى القصير أعاد برمجة مسارات المكافأة (انخفاض كبير في مدى الانتباه). التعلم التقليدي شبه مستحيل. حالة مزمنة من التشتت والقلق وانسحاب من الهوايات الواقعية. أنت على حافة الاحتراق الرقمي الكامل.</p>
+
+                        <p><b>التوصيات:</b></p>
+                        <ul>
+                            <li><b>وضع حدود صارمة للتطبيقات:</b> استخدم أدوات الرفاهية الرقمية لقفل التطبيقات بعد وقت محدد (حاجز مادي).</li>
+                            <li><b>صيام الدوبامين:</b> خصص يوماً كاملاً في الأسبوع لتكون خاليًا تماماً من الشاشات لإعادة ضبط الدماغ.</li>
+                            <li><b>الوضع الرمادي (Grayscale Mode):</b> تغيير إعدادات العرض للأبيض والأسود لجعل الشاشة أقل جاذبية للمخ.</li>
+                            <li><b>إعادة تقديم الوسائط الطويلة:</b> أجبر نفسك على مشاهدة فيديوهات طويلة أو قراءة مقالات دون القيام بمهام متعددة.</li>
+                        </ul>
+                    </div>
+                    <div dir="ltr" style="text-align: left; margin-top:20px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top:15px;" class="script-text">
+                        <p><b>Low Part (Compulsive Doomscrolling):</b><br>
+                        A shift from habit to compulsion (Brainrot 61%-75%). Extensive screen-on time late into the night. You scroll because you feel you have to. Severely impacts sleep quality, delaying melatonin and fragmenting deep sleep. Constant digital noise aggressively erodes emotional regulation.</p>
                         
-                        <h4 style="color: #F97316; margin-top: 15px; margin-bottom: 5px;">🔸 الجزء المرتفع (حوالي 70–80% شدة)</h4>
-                        هذا يمثل ملف brainrot قويًا جدًا. فالمستخدم هنا قريب من أعلى نطاق القياسات، مع وقت شاشة متواصل طويل، واستهلاك كبير للبطارية، ونظام تطبيقات واسع، واستهلاك مرتفع للبيانات. وفي هذه المرحلة لا يكون القلق متعلقًا بالتشتت فقط، بل أيضًا بالحمل المعرفي: فقد يشعر الشخص بأن ذهنه ممتلئ، ومع ذلك يواصل التمرير. وتدعم الأبحاث المتعلقة بالتشبع الرقمي والتشتت الإعلامي فكرة أن هذا النمط قد يُسطّح الانتباه، ويزيد الإرهاق، وقلل جودة التركيز خارج الإنترنت.
-                    </div>
+                        <p><b>High Part (Cognitive Fatigue):</b><br>
+                        Intense cognitive fatigue (76%-85%). Massive daily data consumption. Short-form content has severely rewired reward pathways, causing significant attention span decline. Long-form reading feels impossible. Persistent overstimulation leads to a chronic state of distraction, draining mental energy.</p>
 
-                    <div dir="ltr" style="text-align: left; color: #94A3B8; font-size: 14px; line-height: 1.6; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 10px; border-left: 4px solid #F97316;">
-                        <b>Low part (about 60–70% intensity):</b> This segment is already in the heavy-use zone. The user spends long periods on the phone, and the pattern is likely to include repeated checking, app switching, and significant data use. Even the lower half of Class 3 suggests a highly trained scrolling habit. From an attention perspective, this matters because the user is no longer just exposed to distraction; the device itself is becoming a default regulator of boredom, stress, and idle time. That is a classic setup for digital fatigue.<br><br>
-                        <b>High part (about 70–80% intensity):</b> This is a very strong brainrot profile. The user is close to the upper end of the telemetry scale, with long continuous screen time, high battery drain, large app ecosystems, and heavy data use. At this point, the main concern is not just distraction but cognitive overload: the person may feel mentally full yet still keep scrolling. Research on brain rot, digital overload, and media saturation supports the idea that this pattern can flatten attention, increase fatigue, and reduce the quality of offline focus.
-                    </div>
-
-                    <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid rgba(249, 115, 22, 0.3);">
-                        <h4 style="color: #F8FAFC; text-align: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">💡 التوصيات / Recommendations</h4>
-                        <div dir="rtl" style="text-align: right; color: #CBD5E1; font-size: 15px; line-height: 1.8; margin-bottom: 15px;">
-                            <ul style="list-style-type: '🛑 ';">
-                                <li>استخدم حدودًا صارمة للتطبيقات أو قفل وضع التركيز أثناء ساعات الدراسة، وليس مجرد تذكيرات.</li>
-                                <li>احذف تطبيقًا عالي التحفيز من الاستخدام اليومي لمدة أسبوع على الأقل لكسر الحلقات الآلية.</li>
-                                <li>أنشئ روتينًا ثابتًا لإيقاف الهاتف ليلًا، لأن حماية النوم تصبح أساسية عندما يرتفع وقت الشاشة لهذا الحد.</li>
-                            </ul>
-                        </div>
-                        <div dir="ltr" style="text-align: left; color: #94A3B8; font-size: 14px; line-height: 1.6;">
-                            <ul style="list-style-type: '🛑 ';">
-                                <li>Use hard app limits or focus-mode locks during study hours, not just reminders.</li>
-                                <li>Remove one high-dopamine app from daily use for at least a week to break automatic loops.</li>
-                                <li>Create a fixed nighttime shutdown routine, because sleep protection becomes essential when screen time is this high.</li>
-                            </ul>
-                        </div>
+                        <p><b>Recommendations:</b></p>
+                        <ul>
+                            <li><b>Set Hard App Limits:</b> Use digital wellbeing tools to lock apps after a time limit.</li>
+                            <li><b>Dopamine Fasting:</b> Dedicate one day a week to be completely screen-free.</li>
+                            <li><b>Grayscale Mode:</b> Change display to black and white to naturally reduce compulsive doomscrolling urges.</li>
+                            <li><b>Reintroduce Long-Form Media:</b> Force yourself to watch longer videos or read articles without multitasking.</li>
+                        </ul>
                     </div>
                     """,
                     4: """
-                    <div dir="rtl" style="text-align: right; color: #E2E8F0; font-size: 15px; line-height: 1.8; margin-bottom: 15px;">
-                        <h4 style="color: #F43F5E; margin-bottom: 5px;">🔹 الجزء المنخفض (حوالي 80–90% شدة)</h4>
-                        هذا الجزء قريب جدًا من قمة المقياس، حتى قبل الوصول إلى الحد الأعلى الكامل. المستخدمون هنا يظهرون استخدامًا طويلًا جدًا للتطبيقات، ووقت شاشة كبيرًا جدًا، واستهلاكًا كثيفًا للبطارية والبيانات. وغالبًا ما يعكس النصف الأدنى من Class 4 مشاركة شبه مستمرة في بيئات التمرير، ولكن مع قدر كافٍ من التباين ليبقى دون الذروة المطلقة. عمليًا، يتحول الهاتف هنا من أداة إلى بيئة يومية مهيمنة. وهذه هي النقطة التي يصبح فيها تراجع الانتباه والإرهاق الرقمي صعبَي التجاهل.
+                    <div dir="rtl" style="text-align: right;" class="script-text">
+                        <div class="script-title" style="color:#EF4444;">الفئة (النتيجة 4): توافق Class 5 (خطر شديد جداً - Severe Risk)</div>
+                        <p><b>الجزء المنخفض (الاحتراق الرقمي):</b><br>
+                        لقد وصلت إلى الاحتراق الرقمي الفعلي (86% - 95%). إفراط شديد في جميع المجالات وآلية تكيف لا هوادة فيها. التبديل المستمر أضعف الوظائف التنفيذية. ضباب عقلي مزمن، خمول شديد، وشعور بالخدر العاطفي. تفاعلات الحياة الواقعية تبدو مملة للغاية، مما يؤدي لعزلة اجتماعية عميقة.</p>
+
+                        <p><b>الجزء المرتفع (التبلد الحسي الكامل):</b><br>
+                        أشد مستويات العبء الرقمي الزائد (96% - 100%). إدمان يستهلك كل شيء. تقضي جميع ساعات استيقاظك متصلاً، مما يؤدي لحمل إدراكي زائد كامل وتبلد حسي للحياة. تغييرات هيكلية في معالجة المعلومات والمتعة. انتباه محطم، إجهاد عين، أرق حاد. يتطلب تغييرات جذرية وفورية.</p>
+
+                        <p><b>التوصيات:</b></p>
+                        <ul>
+                            <li><b>طلب الدعم المهني:</b> استشارة مستشار أو معالج متخصص في الإدمان الرقمي لعلاج الأسباب الكامنة.</li>
+                            <li><b>حذف التطبيقات عالية الخطورة:</b> إزالة تطبيقات التمرير اللانهائي تماماً وإجبار النفس على المتصفح للضرورة.</li>
+                            <li><b>أمسيات إلزامية خالية من الشاشات:</b> منع الشاشات قبل ساعتين من النوم واستبدالها بالتمدد وتدوين اليوميات.</li>
+                            <li><b>إعادة بناء روابط العالم الحقيقي:</b> جدولة لقاءات جسدية مع الأصدقاء لعكس العزلة العميقة.</li>
+                            <li><b>التدخل بالنشاط البدني:</b> 30 دقيقة تمارين يومياً لزيادة تدفق الدم وإصلاح الوظائف الإدراكية.</li>
+                        </ul>
+                    </div>
+                    <div dir="ltr" style="text-align: left; margin-top:20px; border-top: 1px dashed rgba(255,255,255,0.2); padding-top:15px;" class="script-text">
+                        <p><b>Low Part (Digital Burnout):</b><br>
+                        You have hit actual digital burnout (Brainrot 86%-95%). Chronically online, using digital media as a relentless coping mechanism. Constant task switching has severely impaired executive functioning. Chronic brain fog, extreme lethargy, emotional numbness. Real-life interactions feel incredibly dull, leading to deep social isolation.</p>
                         
-                        <h4 style="color: #F43F5E; margin-top: 15px; margin-bottom: 5px;">🔸 الجزء المرتفع (حوالي 90–100% شدة)</h4>
-                        هذا هو أقوى ملف brainrot داخل نظامك. المستخدمون في هذه القمة غالبًا يقضون فترات طويلة جدًا على الإنترنت، ويستهلكون كميات ضخمة من المحتوى القصير أو سريع التغير، ويُظهرون أقوى علامات تشتت الانتباه والإرهاق الرقمي. وتشير البحوث حول تشتيت وسائل التواصل، والحمل الإعلامي الزائد، وعادات الفيديو القصير إلى أن هذا النمط يرتبط بانخفاض التركيز المستمر وبازدياد التفقد القهري. وفي العرض التقديمي، يمكن وصف هذه المنطقة بأنها “المنطقة الحمراء” التي تحتاج إلى تعافٍ فعلي، لا إلى نصائح خفيفة فقط.
-                    </div>
+                        <p><b>High Part (Complete Desensitization):</b><br>
+                        Most severe level of digital overload (96%-100%). All-consuming digital addiction causing complete cognitive overload and profound desensitization. Extreme structural changes to brain processing. Sustained attention is entirely shattered. Physical symptoms include severe eye strain and insomnia. Immediate drastic lifestyle changes required.</p>
 
-                    <div dir="ltr" style="text-align: left; color: #94A3B8; font-size: 14px; line-height: 1.6; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 10px; border-left: 4px solid #F43F5E;">
-                        <b>Low part (about 80–90% intensity):</b> This is already near the top of the model’s scale, even before you reach the very maximum. Users here show very long app usage, heavy screen-on time, large battery drain, and extensive data consumption. The lower half of Class 4 often reflects near-constant engagement with scrolling environments, but with just enough variability to remain below the absolute peak. In practical terms, the phone is operating as a dominant daily environment rather than a tool. That is the point where attention decline and digital burnout risk become difficult to ignore.<br><br>
-                        <b>High part (about 90–100% intensity):</b> This is the most intense brainrot profile in your system. Users at the top end are likely spending very long continuous periods online, consuming large volumes of short-form or rapidly changing content, and showing the strongest signs of attention fragmentation and digital fatigue. Research on social-media distraction, media overload, and short-form video habits suggests that this pattern is closely tied to reduced sustained focus and stronger compulsive checking. In a presentation context, this is the “red zone” where the user needs active recovery, not just light advice.
-                    </div>
-
-                    <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid rgba(244, 63, 94, 0.4);">
-                        <h4 style="color: #F8FAFC; text-align: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">💡 التوصيات / Recommendations</h4>
-                        <div dir="rtl" style="text-align: right; color: #CBD5E1; font-size: 15px; line-height: 1.8; margin-bottom: 15px;">
-                            <ul style="list-style-type: '🚨 ';">
-                                <li>ابنِ جدولًا يوميًا صارمًا لاستخدام الجهاز مع فترات دراسة وفترات تعافٍ محددة ومقفلة؛ فالإرادة وحدها غالبًا لا تكفي هنا.</li>
-                                <li>أضف محاسبة خارجية، مثل صديق أو فرد من العائلة أو تطبيق حجب يرسل تقارير يومية عن الاستخدام.</li>
-                                <li>استبدل التمرير الليلي بروتين يحمي النوم، لأن قلة النوم نفسها تضعف الأداء المعرفي والانتباه.</li>
-                            </ul>
-                        </div>
-                        <div dir="ltr" style="text-align: left; color: #94A3B8; font-size: 14px; line-height: 1.6;">
-                            <ul style="list-style-type: '🚨 ';">
-                                <li>Build a strict daily device schedule with locked study blocks and locked recovery blocks, because passive self-control is usually not enough here.</li>
-                                <li>Add external accountability, such as a friend, family member, or app blocker that reports daily usage.</li>
-                                <li>Replace late-night scrolling with sleep-protective routines, since sleep loss itself weakens cognitive functioning and focus.</li>
-                            </ul>
-                        </div>
+                        <p><b>Recommendations:</b></p>
+                        <ul>
+                            <li><b>Seek Professional Support:</b> Consult a therapist specializing in digital addiction.</li>
+                            <li><b>Delete High-Risk Apps:</b> Completely remove apps causing endless scrolling loops.</li>
+                            <li><b>Mandatory Screen-Free Evenings:</b> Enforce a strict no-screens rule two hours before bedtime.</li>
+                            <li><b>Rebuild Real-World Connections:</b> Actively schedule face-to-face meetups to reverse deep isolation.</li>
+                            <li><b>Physical Activity Intervention:</b> Commit to 30 minutes of moderate exercise daily to repair cognitive functioning.</li>
+                        </ul>
                     </div>
                     """
                 }
 
-                app_report_text = APP_REPORTS.get(int(pred), "")
-                if app_report_text:
-                    st.markdown('<div class="metric-card" style="margin-top:20px;">', unsafe_allow_html=True)
-                    st.markdown("<h3 style='color:#67E8F9; text-align:center; margin-bottom:20px;'>📄 Behavior Report / تقرير السلوك التفصيلي</h3>", unsafe_allow_html=True)
-                    st.markdown(app_report_text, unsafe_allow_html=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
-
+                st.markdown(f'''<div class="metric-card" style="margin-top: 15px;">{app_scripts.get(int(pred), "تعذر جلب التحليل الخاص بهذه الفئة.")}</div>''', unsafe_allow_html=True)
 
 # ------------------------------------------------------------------
-# Page 3: AI Assistant 🤖 (نظام الهجين الذكي - Smart Hybrid)
+# Page 3: AI Assistant 🤖
 # ------------------------------------------------------------------
 elif page == "AI Assistant 🤖":
     st.markdown("<h3 style='color: #A855F7 !important; font-weight: 700; animation: fadeInUp 0.6s ease-out forwards;'>🤖 Smart AI Assistant</h3>", unsafe_allow_html=True)
     st.markdown("<p style='color: #94A3B8 !important;'>اسألني عن النتائج، أو ارفع صورة للمخطط البياني وسأقوم بتحليله لك استناداً إلى أحدث تقنيات Gemini.</p>", unsafe_allow_html=True)
 
-    # 1. محاولة جلب مفتاحك السري المخفي ليعمل الأبلكيشن تلقائياً
     try:
         dev_api_key = st.secrets["GEMINI_API_KEY"]
     except Exception:
         dev_api_key = ""
 
-    # 2. تهيئة مساحة لحفظ مفتاح المستخدم في حالة الطوارئ
     if "user_api_key" not in st.session_state:
         st.session_state.user_api_key = ""
 
-    # 3. واجهة الطوارئ (تكون مغلقة بشكل افتراضي لعدم إزعاج المستخدمين)
     with st.expander("⚙️ الخادم مشغول؟ (أدخل مفتاحك الخاص لتجاوز الزحام)", expanded=False):
         st.markdown("""
         <p style='color:#CBD5E1; font-size:14px; line-height: 1.6;'>
@@ -755,60 +681,46 @@ elif page == "AI Assistant 🤖":
             st.session_state.user_api_key = user_input_key
             st.success("✅ تم تفعيل مفتاحك الخاص بنجاح! يمكنك الآن استخدام الشات.")
 
-    # 4. اختيار المفتاح المستخدم: (لو المستخدم حط مفتاحه الخاص، هنستخدمه، لو لأ، هنستخدم مفتاحك السري)
     active_api_key = st.session_state.user_api_key if st.session_state.user_api_key else dev_api_key
 
-    # التأكد من وجود مفتاح للعمل
     if not active_api_key:
         st.error("⚠️ لم يتم العثور على أي مفتاح API صالح. يرجى إعداد الـ Secrets أو إدخال مفتاحك الخاص ليعمل الشات.")
         st.stop()
     else:
-        # إعداد الاتصال بالموديل
         genai.configure(api_key=active_api_key)
 
-        # تهيئة تاريخ المحادثة
         if "messages" not in st.session_state:
             st.session_state.messages = []
 
-        # عرض المحادثات السابقة
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
 
-        # واجهة رفع الصورة (اختياري)
         with st.expander("📷 إرفاق صورة للتحليل (اختياري)"):
             uploaded_file = st.file_uploader("اختر صورة (PNG, JPG, JPEG)", type=["png", "jpg", "jpeg"])
             if uploaded_file is not None:
                 st.image(uploaded_file, caption="الصورة المرفوعة", width=250)
 
-        # مربع المحادثة
         if prompt := st.chat_input("اكتب سؤالك هنا... (مثال: اشرح لي نتيجتي الأخيرة)"):
             
-            # عرض رسالة المستخدم
             with st.chat_message("user"):
                 st.markdown(prompt)
             st.session_state.messages.append({"role": "user", "content": prompt})
 
-            # ==========================================
-            # 🚀 تعليمات الموديل (System Prompt) المحدثة
-            # ==========================================
             sys_instruct = """أنت مهندس بيانات ومساعد ذكي مدمج في منصة 'Vision Analytics'. وظيفتك تحليل البيانات والرد على استفسارات المستخدمين باحترافية وتقديم رؤى واضحة.
             يجب أن تفهم جيداً أن هذه المنصة تحتوي على نظامين منفصلين للذكاء الاصطناعي:
-            1. نظام (Student Risk Analysis): مخصص للطلاب فقط. يتوقع احتمالية تعرض الطالب للخطر (مثل التسرب الدراسي أو الانهيار النفسي) بناءً على عوامل نفسية وبيئية. عندما يسألك طالب عن نتيجته، قدم له توصيات دراسية وأكاديمية ونفسية وروتين يساعده على تخطي الضغوط والنجاح.
-            2. نظام (App Behavior Analysis): مخصص لأي مستخدم (ليس بالضرورة طالب). يحلل السلوك التقني لمستخدمي الهواتف الذكية. عندما يسألك المستخدم عن نتيجته، لا تكتفِ مطلقاً بنصائح تقنية جافة مثل "قلل استهلاك البطارية"، بل ركز بشدة على "صحة المستخدم"، وقدم له روتيناً يومياً أو نصائح لـ "الديتوكس الرقمي" (Digital Detox) لحمايته من أضرار الإفراط في استخدام الموبايل (مثل إجهاد العين، مشاكل النوم، أو الإدمان الرقمي).
-            
-            بناءً على هذا الفهم، قم بالإجابة على أسئلة المستخدم أو تحليل الصور التي يرفعها بدقة عالية، وقدم نصائح صحية وعملية ومباشرة لحل المشاكل التي تظهر في البيانات."""
+            1. نظام (Student Risk Analysis): مخصص للطلاب فقط. يتوقع احتمالية تعرض الطالب للخطر بناءً على عوامل نفسية وبيئية.
+            2. نظام (App Behavior Analysis): يحلل السلوك التقني لمستخدمي الهواتف الذكية. ركز على نصائح "الديتوكس الرقمي" والصحة.
+            بناءً على هذا الفهم، قم بالإجابة بدقة عالية وقدم نصائح عملية ومباشرة."""
             
             if 'last_analysis_context' in st.session_state:
-                sys_instruct += f"\n\n[سياق مخفي هام جداً للإجابة]: أحدث نتيجة تحليل قام بها المستخدم للتو على المنصة هي: {st.session_state['last_analysis_context']}"
+                sys_instruct += f"\n\n[سياق مخفي هام جداً للإجابة]: أحدث نتيجة تحليل قام بها المستخدم للتو هي: {st.session_state['last_analysis_context']}"
 
-            # استخدام الموديل المستقر
             model = genai.GenerativeModel(
                 model_name='gemini-flash-latest',
                 system_instruction=sys_instruct
             )
 
-            # طلب الرد
             with st.chat_message("assistant"):
                 with st.spinner("جاري التحليل... 🧠"):
                     try:
