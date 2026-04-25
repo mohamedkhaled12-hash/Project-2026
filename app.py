@@ -111,23 +111,26 @@ st.markdown("""
         border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
-    /* إصلاح مربعات الإدخال لتكون بخلفية بيضاء ونص غامق */
+    /* ==========================================
+       إصلاح مربعات الإدخال والقوائم لتتكيف مع الـ Light/Dark Mode
+       ========================================== */
+       
+    /* 1. مربعات الإدخال الرئيسية */
     div[data-baseweb="select"] > div, div[data-baseweb="base-input"] > input {
-        background-color: #F8FAFC !important;
-        color: #0F172A !important;
+        background-color: var(--secondary-background-color) !important;
+        color: var(--text-color) !important;
+        -webkit-text-fill-color: var(--text-color) !important;
         font-weight: 700 !important;
         font-size: 15px !important;
         border-radius: 10px !important;
         border: 2px solid transparent !important;
-        -webkit-text-fill-color: #0F172A !important;
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         transition: all 0.3s ease;
     }
     
-    /* استهداف النص داخل المربع فقط دون القائمة المنسدلة */
     div[data-baseweb="select"] > div *, div[data-baseweb="base-input"] > input * {
-        color: #0F172A !important;
-        -webkit-text-fill-color: #0F172A !important;
+        color: var(--text-color) !important;
+        -webkit-text-fill-color: var(--text-color) !important;
     }
 
     div[data-baseweb="select"] > div:hover, div[data-baseweb="base-input"] > input:hover {
@@ -135,24 +138,23 @@ st.markdown("""
         transform: scale(1.01);
     }
 
-    /* ==========================================
-       إصلاح جذري للقائمة المنسدلة للعمل في الوضعين (Light & Dark)
-       ========================================== */
+    /* 2. القائمة المنسدلة (الخيارات المتدلية) */
     [data-baseweb="popover"] {
         background-color: transparent !important; 
     }
     
     [role="listbox"], ul[data-baseweb="menu"], div[data-baseweb="popover"] > div {
-        background-color: #F8FAFC !important; /* خلفية بيضاء ثابتة لضمان الوضوح في الحالتين */
+        background-color: var(--background-color) !important; 
         border-radius: 12px !important;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.2) !important;
-        border: 1px solid rgba(56, 189, 248, 0.4) !important;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important;
+        border: 1px solid var(--secondary-background-color) !important;
         padding: 4px !important;
     }
 
+    /* 3. عناصر الخيارات داخل القائمة */
     [role="option"], ul[data-baseweb="menu"] li {
-        color: #0F172A !important; /* نص غامق ثابت */
-        -webkit-text-fill-color: #0F172A !important;
+        color: var(--text-color) !important;
+        -webkit-text-fill-color: var(--text-color) !important;
         font-weight: 700 !important;
         font-size: 15px !important;
         background-color: transparent !important;
@@ -163,23 +165,25 @@ st.markdown("""
     }
 
     [role="option"] *, ul[data-baseweb="menu"] li * {
-        color: #0F172A !important;
-        -webkit-text-fill-color: #0F172A !important;
+        color: var(--text-color) !important;
+        -webkit-text-fill-color: var(--text-color) !important;
     }
 
-    /* تأثير الوقوف بالماوس على الخيارات */
+    /* 4. تأثير الوقوف بالماوس (Hover) للخيارات */
     [role="option"]:hover, [role="option"][aria-selected="true"],
     ul[data-baseweb="menu"] li:hover, ul[data-baseweb="menu"] li[aria-selected="true"] {
-        background-color: rgba(56, 189, 248, 0.2) !important;
-        color: #0369A1 !important; /* لون أزرق غامق للتميز عند الوقوف بالماوس */
-        -webkit-text-fill-color: #0369A1 !important;
+        background-color: var(--secondary-background-color) !important;
+        color: #38BDF8 !important;
+        -webkit-text-fill-color: #38BDF8 !important;
     }
     
     [role="option"]:hover *, [role="option"][aria-selected="true"] *,
     ul[data-baseweb="menu"] li:hover *, ul[data-baseweb="menu"] li[aria-selected="true"] * {
-        color: #0369A1 !important;
-        -webkit-text-fill-color: #0369A1 !important;
+        color: #38BDF8 !important;
+        -webkit-text-fill-color: #38BDF8 !important;
     }
+
+    /* ========================================== */
 
     /* أزرار التنقل */
     div[role="radiogroup"] {
