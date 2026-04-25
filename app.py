@@ -136,23 +136,23 @@ st.markdown("""
     }
 
     /* ==========================================
-       إصلاح جذري للقائمة المنسدلة للعمل في الوضعين
+       إصلاح جذري للقائمة المنسدلة للعمل في الوضعين (Light & Dark)
        ========================================== */
     [data-baseweb="popover"] {
         background-color: transparent !important; 
     }
     
     [role="listbox"], ul[data-baseweb="menu"], div[data-baseweb="popover"] > div {
-        background-color: #1E293B !important; /* لون كحلي غامق ثابت */
+        background-color: #F8FAFC !important; /* خلفية بيضاء ثابتة لضمان الوضوح في الحالتين */
         border-radius: 12px !important;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.8) !important;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2) !important;
         border: 1px solid rgba(56, 189, 248, 0.4) !important;
         padding: 4px !important;
     }
 
     [role="option"], ul[data-baseweb="menu"] li {
-        color: #F8FAFC !important; /* نص أبيض ثابت */
-        -webkit-text-fill-color: #F8FAFC !important;
+        color: #0F172A !important; /* نص غامق ثابت */
+        -webkit-text-fill-color: #0F172A !important;
         font-weight: 700 !important;
         font-size: 15px !important;
         background-color: transparent !important;
@@ -163,22 +163,22 @@ st.markdown("""
     }
 
     [role="option"] *, ul[data-baseweb="menu"] li * {
-        color: #F8FAFC !important;
-        -webkit-text-fill-color: #F8FAFC !important;
+        color: #0F172A !important;
+        -webkit-text-fill-color: #0F172A !important;
     }
 
     /* تأثير الوقوف بالماوس على الخيارات */
     [role="option"]:hover, [role="option"][aria-selected="true"],
     ul[data-baseweb="menu"] li:hover, ul[data-baseweb="menu"] li[aria-selected="true"] {
-        background-color: rgba(56, 189, 248, 0.25) !important;
-        color: #38BDF8 !important;
-        -webkit-text-fill-color: #38BDF8 !important;
+        background-color: rgba(56, 189, 248, 0.2) !important;
+        color: #0369A1 !important; /* لون أزرق غامق للتميز عند الوقوف بالماوس */
+        -webkit-text-fill-color: #0369A1 !important;
     }
     
     [role="option"]:hover *, [role="option"][aria-selected="true"] *,
     ul[data-baseweb="menu"] li:hover *, ul[data-baseweb="menu"] li[aria-selected="true"] * {
-        color: #38BDF8 !important;
-        -webkit-text-fill-color: #38BDF8 !important;
+        color: #0369A1 !important;
+        -webkit-text-fill-color: #0369A1 !important;
     }
 
     /* أزرار التنقل */
