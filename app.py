@@ -112,49 +112,56 @@ st.markdown("""
     }
 
     /* ==========================================
-       إصلاح مربعات الإدخال والقوائم لتتكيف مع الـ Light/Dark Mode
+       حل جذري لمربعات الإدخال والقوائم (توحيد الألوان بشكل ثابت)
        ========================================== */
        
-    /* 1. مربعات الإدخال الرئيسية */
-    div[data-baseweb="select"] > div, div[data-baseweb="base-input"] > input {
-        background-color: var(--secondary-background-color) !important;
-        color: var(--text-color) !important;
-        -webkit-text-fill-color: var(--text-color) !important;
+    /* 1. مربعات الإدخال الرئيسية (Selectbox & Text/Number Input) */
+    div[data-baseweb="select"] > div, 
+    div[data-baseweb="base-input"] > input {
+        background-color: rgba(15, 23, 42, 0.8) !important; /* لون داكن زجاجي */
+        color: #F8FAFC !important; /* نص أبيض ساطع */
+        -webkit-text-fill-color: #F8FAFC !important;
         font-weight: 700 !important;
         font-size: 15px !important;
         border-radius: 10px !important;
-        border: 2px solid transparent !important;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        border: 1px solid rgba(56, 189, 248, 0.3) !important;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
         transition: all 0.3s ease;
     }
     
-    div[data-baseweb="select"] > div *, div[data-baseweb="base-input"] > input * {
-        color: var(--text-color) !important;
-        -webkit-text-fill-color: var(--text-color) !important;
+    /* استهداف النص داخل المربع والأسهم */
+    div[data-baseweb="select"] > div *, 
+    div[data-baseweb="base-input"] > input * {
+        color: #F8FAFC !important;
+        -webkit-text-fill-color: #F8FAFC !important;
     }
 
-    div[data-baseweb="select"] > div:hover, div[data-baseweb="base-input"] > input:hover {
-        border: 2px solid rgba(56, 189, 248, 0.5) !important;
+    div[data-baseweb="select"] > div:hover, 
+    div[data-baseweb="base-input"] > input:hover {
+        border: 1px solid rgba(56, 189, 248, 0.8) !important;
         transform: scale(1.01);
     }
 
-    /* 2. القائمة المنسدلة (الخيارات المتدلية) */
+    /* 2. القائمة المنسدلة المتدلية (Dropdown Popover) */
     [data-baseweb="popover"] {
         background-color: transparent !important; 
     }
     
-    [role="listbox"], ul[data-baseweb="menu"], div[data-baseweb="popover"] > div {
-        background-color: var(--background-color) !important; 
+    [role="listbox"], 
+    ul[data-baseweb="menu"], 
+    div[data-baseweb="popover"] > div {
+        background-color: #0F172A !important; /* خلفية كحلي غامق جداً ثابتة */
         border-radius: 12px !important;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important;
-        border: 1px solid var(--secondary-background-color) !important;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
+        border: 1px solid rgba(56, 189, 248, 0.4) !important;
         padding: 4px !important;
     }
 
     /* 3. عناصر الخيارات داخل القائمة */
-    [role="option"], ul[data-baseweb="menu"] li {
-        color: var(--text-color) !important;
-        -webkit-text-fill-color: var(--text-color) !important;
+    [role="option"], 
+    ul[data-baseweb="menu"] li {
+        color: #F8FAFC !important; /* نص أبيض ثابت */
+        -webkit-text-fill-color: #F8FAFC !important;
         font-weight: 700 !important;
         font-size: 15px !important;
         background-color: transparent !important;
@@ -164,21 +171,26 @@ st.markdown("""
         cursor: pointer !important;
     }
 
-    [role="option"] *, ul[data-baseweb="menu"] li * {
-        color: var(--text-color) !important;
-        -webkit-text-fill-color: var(--text-color) !important;
+    [role="option"] *, 
+    ul[data-baseweb="menu"] li * {
+        color: #F8FAFC !important;
+        -webkit-text-fill-color: #F8FAFC !important;
     }
 
     /* 4. تأثير الوقوف بالماوس (Hover) للخيارات */
-    [role="option"]:hover, [role="option"][aria-selected="true"],
-    ul[data-baseweb="menu"] li:hover, ul[data-baseweb="menu"] li[aria-selected="true"] {
-        background-color: var(--secondary-background-color) !important;
-        color: #38BDF8 !important;
+    [role="option"]:hover, 
+    [role="option"][aria-selected="true"],
+    ul[data-baseweb="menu"] li:hover, 
+    ul[data-baseweb="menu"] li[aria-selected="true"] {
+        background-color: rgba(56, 189, 248, 0.25) !important; 
+        color: #38BDF8 !important; /* إضاءة زرقاء للنص */
         -webkit-text-fill-color: #38BDF8 !important;
     }
     
-    [role="option"]:hover *, [role="option"][aria-selected="true"] *,
-    ul[data-baseweb="menu"] li:hover *, ul[data-baseweb="menu"] li[aria-selected="true"] * {
+    [role="option"]:hover *, 
+    [role="option"][aria-selected="true"] *,
+    ul[data-baseweb="menu"] li:hover *, 
+    ul[data-baseweb="menu"] li[aria-selected="true"] * {
         color: #38BDF8 !important;
         -webkit-text-fill-color: #38BDF8 !important;
     }
