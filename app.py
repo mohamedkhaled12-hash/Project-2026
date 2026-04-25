@@ -132,18 +132,23 @@ st.markdown("""
         transform: scale(1.01);
     }
 
-    ul[data-baseweb="menu"], div[data-baseweb="popover"] {
-        background-color: #F8FAFC !important;
+    /* إصلاح القائمة المنسدلة (الـ Dropdown) لتكون واضحة في الـ Dark Mode */
+    ul[data-baseweb="menu"], div[data-baseweb="popover"], div[data-baseweb="popover"] > div {
+        background-color: #0F172A !important;
         border-radius: 10px !important;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.3) !important;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.5) !important;
+        border: 1px solid rgba(56, 189, 248, 0.2) !important;
     }
     ul[data-baseweb="menu"] li, ul[data-baseweb="menu"] li *, div[data-baseweb="popover"] * {
-        color: #0F172A !important;
+        color: #F8FAFC !important;
         font-weight: 700 !important;
         font-size: 15px !important;
-        -webkit-text-fill-color: #0F172A !important;
+        -webkit-text-fill-color: #F8FAFC !important;
     }
     ul[data-baseweb="menu"] li { padding: 10px 15px !important; }
+    ul[data-baseweb="menu"] li:hover, ul[data-baseweb="menu"] li[aria-selected="true"] {
+        background-color: rgba(56, 189, 248, 0.2) !important;
+    }
 
     div[role="radiogroup"] {
         display: flex;
